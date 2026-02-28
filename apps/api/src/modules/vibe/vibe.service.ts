@@ -106,8 +106,6 @@ export class VibeService {
           ...this.buildGithubEnv(input.githubToken),
           VIBE_HOME: join(repoDir, '.vibe'),
         },
-        onStdout: (chunk) => this.logger.log(chunk.trimEnd()),
-        onStderr: (chunk) => this.logger.warn(chunk.trimEnd()),
       });
 
       if (vibeResult.exitCode !== 0) {
