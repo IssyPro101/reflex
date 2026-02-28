@@ -25,9 +25,9 @@ import {
   Lock,
   Globe,
   Save,
-  Send,
   MoreHorizontal,
 } from "lucide-react";
+import { DiscordIcon, TelegramIcon } from "@/components/icons/BrandIcons";
 import type {
   AuthMeResponse,
   ObservabilityResponse,
@@ -378,6 +378,43 @@ export function Dashboard({
                   variants={fadeIn}
                   transition={{ duration: 0.2 }}
                 >
+                  {/* Channels indicators */}
+                  <div className="flex flex-wrap items-center gap-6 mb-6 pb-4 border-b border-white/[0.04]">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[12px] font-medium text-zinc-500 uppercase tracking-wider mr-2">Listening On</span>
+                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.03] border border-white/[0.08]">
+                        <DiscordIcon className="w-3.5 h-3.5 text-[#5865F2]" />
+                        <span className="text-[12px] text-zinc-300">
+                          {discordGuilds.length > 0 ? `${discordGuilds.length} Server${discordGuilds.length > 1 ? 's' : ''}` : 'None'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="w-px h-4 bg-white/[0.08] hidden sm:block"></div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[12px] font-medium text-zinc-500 uppercase tracking-wider mr-2">Modifying</span>
+                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.03] border border-white/[0.08]">
+                        <Github className="w-3.5 h-3.5 text-zinc-400" />
+                        <span className="text-[12px] text-zinc-300">
+                          {targetRepoUrl ? targetRepoUrl.replace('https://github.com/', '') : 'None'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="w-px h-4 bg-white/[0.08] hidden sm:block"></div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[12px] font-medium text-zinc-500 uppercase tracking-wider mr-2">Notifying</span>
+                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.03] border border-white/[0.08]">
+                        <TelegramIcon className="w-3.5 h-3.5 text-[#26A5E4]" />
+                        <span className="text-[12px] text-zinc-300">
+                          {telegramChatId ? 'Active' : 'None'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Stats line */}
                   {loadingOverview && !overview ? (
                     <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
@@ -577,7 +614,7 @@ export function Dashboard({
 
                     <section>
                       <h3 className="text-[14px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
-                        <MessageSquare className="w-4 h-4 text-zinc-400" />
+                        <DiscordIcon className="w-4 h-4 text-[#5865F2]" />
                         Discord Servers
                       </h3>
                       <div className="space-y-3">
@@ -609,7 +646,7 @@ export function Dashboard({
 
                     <section>
                       <h3 className="text-[14px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
-                        <Send className="w-4 h-4 text-zinc-400" />
+                        <TelegramIcon className="w-4 h-4 text-[#26A5E4]" />
                         Telegram Notifications
                       </h3>
                       <div className="flex items-center gap-2">

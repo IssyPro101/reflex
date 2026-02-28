@@ -56,7 +56,20 @@ button, input {
   font-family: inherit;
 }
 
-/* Linear-like glowing radial gradient for the hero background */
-.hero-glow {
-  background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.04) 0%, transparent 60%);
+/* Subtle radial glow behind the hero section */
+.hero-glow-refined {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 600px;
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 30%,
+    rgba(99, 102, 241, 0.06) 0%,
+    rgba(99, 102, 241, 0.02) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
 }

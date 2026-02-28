@@ -5,204 +5,525 @@ import {
   ArrowRight,
   GitPullRequest,
   BarChart3,
-  MessageSquare,
   Bot,
   Terminal,
+  MessageSquare,
+  Code2,
+  Zap,
+  LayoutDashboard,
+  Activity,
+  Settings,
+  AlertTriangle,
+  Clock,
+  Hand,
+  GitMerge,
+  Github,
+  ExternalLink,
 } from "lucide-react";
+import { DiscordIcon, TelegramIcon } from "@/components/icons/BrandIcons";
 
 const fadeUp = {
-  initial: { opacity: 0, y: 15 },
+  initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
 };
 
 const stagger = {
-  animate: { transition: { staggerChildren: 0.1 } },
+  animate: { transition: { staggerChildren: 0.08 } },
 };
 
 const features = [
   {
-    icon: MessageSquare,
+    icon: DiscordIcon,
     title: "Community Listening",
-    description: "Connect Discord and monitor community feedback automatically.",
+    description:
+      "Connect your Discord server and surface real user feedback in real time.",
   },
   {
     icon: Bot,
     title: "AI Triage",
-    description: "Mistral AI instantly classifies issues, bugs, and features.",
+    description:
+      "Mistral AI reads every message, classifying bugs, feature requests, and noise.",
   },
   {
     icon: GitPullRequest,
     title: "Automated PRs",
-    description: "Generates code fixes and opens pull requests autonomously.",
+    description:
+      "Code fixes are generated and opened as pull requests — ready for review.",
   },
   {
     icon: BarChart3,
     title: "Observability",
-    description: "Track system health, PR merge rates, and community intent.",
+    description:
+      "Track PR merge rates, community sentiment, and system health at a glance.",
+  },
+];
+
+const steps = [
+  {
+    number: "01",
+    icon: MessageSquare,
+    title: "Listen",
+    description: "CFCA monitors your Discord for bug reports and feedback.",
+  },
+  {
+    number: "02",
+    icon: Code2,
+    title: "Fix",
+    description: "Mistral AI analyzes the issue and generates a code patch.",
+  },
+  {
+    number: "03",
+    icon: GitPullRequest,
+    title: "Ship",
+    description: "A pull request is opened on your repo, ready to merge.",
   },
 ];
 
 export function Landing({ onSignIn }: { onSignIn: () => void }) {
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-white/20">
+    <div className="min-h-screen bg-black text-white selection:bg-indigo-500/30">
       {/* Navbar */}
-      <nav className="fixed top-0 inset-x-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/[0.08]">
-        <div className="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 flex-1">
-            <Terminal className="w-4 h-4 text-white" />
-            <span className="font-semibold tracking-tight text-[15px]">CFCA</span>
+      <nav className="fixed top-0 inset-x-0 z-50 bg-black/70 backdrop-blur-xl border-b border-white/[0.06]">
+        <div className="max-w-[1100px] mx-auto px-6 py-4 flex items-center">
+          <div className="flex items-center gap-2.5 flex-1">
+            <div className="w-7 h-7 rounded-lg bg-white/[0.08] border border-white/[0.06] flex items-center justify-center">
+              <Terminal className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="font-semibold tracking-tight text-[15px]">
+              CFCA
+            </span>
           </div>
 
-          <div className="hidden md:flex items-center justify-center gap-6 text-[13px] text-zinc-400 font-medium">
-            <a href="#product" className="hover:text-white transition-colors">
-              Product
+          <div className="hidden md:flex items-center justify-center gap-8 text-[13px] text-zinc-500 font-medium">
+            <a
+              href="#how-it-works"
+              className="hover:text-white transition-colors duration-200"
+            >
+              How it works
             </a>
-            <a href="#features" className="hover:text-white transition-colors">
+            <a
+              href="#features"
+              className="hover:text-white transition-colors duration-200"
+            >
               Features
-            </a>
-            <a href="#workflow" className="hover:text-white transition-colors">
-              Workflow
             </a>
           </div>
 
           <div className="flex items-center justify-end gap-3 text-[13px] font-medium flex-1">
             <button
               onClick={onSignIn}
-              className="hidden sm:block text-zinc-400 hover:text-white transition-colors"
+              className="hidden sm:block text-zinc-500 hover:text-white transition-colors duration-200"
             >
               Log in
             </button>
             <button
               onClick={onSignIn}
-              className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-zinc-200 transition-colors"
+              className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-zinc-200 transition-colors duration-200"
             >
-              Sign up
+              Get started
             </button>
           </div>
         </div>
       </nav>
 
-      <main className="pt-24 pb-24 px-6 max-w-[1200px] mx-auto hero-glow">
-        {/* Hero Section */}
-        <motion.section
-          className="max-w-3xl mx-auto text-center pt-8 md:pt-12 pb-16 flex flex-col items-center"
-          initial="initial"
-          animate="animate"
-          variants={stagger}
-        >
-          <motion.h1
-            className="text-[44px] sm:text-[64px] md:text-[80px] leading-[1.05] tracking-[-0.02em] font-medium"
-            variants={fadeUp}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          >
-            CFCA is a purpose-built tool for automating bug fixes
-          </motion.h1>
-
-          <motion.p
-            className="mt-6 text-[19px] sm:text-[21px] text-zinc-400 leading-relaxed max-w-2xl font-normal"
-            variants={fadeUp}
-            transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          >
-            Meet the system for modern community-driven development.
-            <br className="hidden sm:block" />
-            Streamline bug reports, triage, and automated code generation.
-          </motion.p>
+      <main>
+        {/* Hero */}
+        <section className="relative pt-32 md:pt-40 pb-20 px-6 overflow-hidden">
+          <div className="hero-glow-refined" />
 
           <motion.div
-            className="mt-10"
-            variants={fadeUp}
-            transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="relative max-w-[720px] mx-auto text-center flex flex-col items-center"
+            initial="initial"
+            animate="animate"
+            variants={stagger}
           >
-            <button
-              onClick={onSignIn}
-              className="group inline-flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full text-[15px] font-medium hover:bg-zinc-200 transition-colors"
+            <motion.div
+              variants={fadeUp}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
-              Start building
-              <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
-            </button>
-          </motion.div>
-        </motion.section>
+              <span className="inline-flex items-center gap-2 text-[12px] font-medium tracking-wide uppercase text-zinc-500 border border-white/[0.08] rounded-full px-3.5 py-1.5 mb-8 bg-white/[0.02]">
+                <Zap className="w-3 h-3 text-amber-400" />
+                Powered by Mistral AI
+              </span>
+            </motion.div>
 
-        {/* Mock App Image / Interface Visualization */}
+            <motion.h1
+              className="text-[40px] sm:text-[56px] md:text-[68px] leading-[1.08] tracking-[-0.035em] font-semibold bg-gradient-to-b from-white via-white to-zinc-500 bg-clip-text text-transparent"
+              variants={fadeUp}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            >
+              Community feedback,
+              <br />
+              fixed automatically
+            </motion.h1>
+
+            <motion.p
+              className="mt-6 text-[17px] sm:text-[19px] text-zinc-400 leading-[1.65] max-w-[520px]"
+              variants={fadeUp}
+              transition={{
+                duration: 0.6,
+                delay: 0.05,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+            >
+              CFCA listens to your Discord, triages bug reports with AI, and
+              opens pull requests with fixes — so you can ship faster.
+            </motion.p>
+
+            <motion.div
+              className="mt-10 flex items-center gap-4"
+              variants={fadeUp}
+              transition={{
+                duration: 0.6,
+                delay: 0.1,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+            >
+              <button
+                onClick={onSignIn}
+                className="group inline-flex items-center gap-2.5 bg-white text-black px-6 py-3 rounded-full text-[14px] font-semibold hover:bg-zinc-100 transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+              >
+                Get started free
+                <ArrowRight className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200" />
+              </button>
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* App Preview — mirrors actual dashboard */}
         <motion.section
-          className="relative w-full rounded-2xl border border-white/[0.08] bg-[#0A0A0A] overflow-hidden shadow-2xl mt-12 mb-32"
-          initial={{ opacity: 0, y: 20 }}
+          className="px-6 pb-32"
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          {/* Mac window controls */}
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.04] bg-[#0A0A0A]">
-            <div className="w-3 h-3 rounded-full bg-zinc-800" />
-            <div className="w-3 h-3 rounded-full bg-zinc-800" />
-            <div className="w-3 h-3 rounded-full bg-zinc-800" />
-          </div>
-          {/* Mock content representing the app */}
-          <div className="flex flex-col md:flex-row min-h-[400px]">
-            <div className="w-full md:w-64 border-r border-white/[0.04] p-4 space-y-4">
-              <div className="flex items-center gap-2 text-sm font-medium mb-6">
-                <Terminal className="w-4 h-4" />
-                Workspace
+          <div className="max-w-[1000px] mx-auto relative">
+            <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none" />
+            <div className="rounded-2xl border border-white/[0.06] bg-[#08080A] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]">
+              {/* Window chrome */}
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.04]">
+                <div className="w-2.5 h-2.5 rounded-full bg-white/[0.08]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-white/[0.08]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-white/[0.08]" />
+                <span className="text-[11px] text-zinc-600 ml-3 font-mono">
+                  cfca — dashboard
+                </span>
               </div>
-              <div className="space-y-1">
-                {["Overview", "Complaints", "Pull Requests", "Settings"].map((item, i) => (
-                  <div
-                    key={item}
-                    className={`text-[13px] px-2 py-1.5 rounded-md ${
-                      i === 0 ? "bg-white/[0.08] text-white" : "text-zinc-500"
-                    }`}
-                  >
-                    {item}
+
+              <div className="flex flex-col md:flex-row min-h-[420px]">
+                {/* Sidebar — matches real Dashboard.tsx */}
+                <div className="w-full md:w-[200px] border-r border-white/[0.04] flex flex-col">
+                  <div className="h-12 flex items-center px-4 border-b border-white/[0.04]">
+                    <div className="flex items-center gap-2 text-[13px] font-medium text-zinc-300">
+                      <Terminal className="w-3.5 h-3.5" />
+                      Workspace
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
-            <div className="flex-1 p-6 lg:p-10 bg-[#000000]">
-              <div className="max-w-2xl">
-                <h3 className="text-xl font-medium mb-1">Refactor connection handler</h3>
-                <p className="text-[13px] text-zinc-500 mb-8">Generated by Mistral AI from Discord feedback</p>
-                
-                <div className="rounded-lg border border-white/[0.08] bg-[#0A0A0A] p-4 font-mono text-[13px] text-zinc-400 leading-relaxed overflow-x-hidden">
-                  <div className="text-zinc-500 mb-2">// The handler is throwing undefined errors under heavy load</div>
-                  <div className="mb-1"><span className="text-blue-400">export async function</span> <span className="text-yellow-200">handleConnection</span>(req, res) {"{"}</div>
-                  <div className="ml-4"><span className="text-blue-400">try</span> {"{"}</div>
-                  <div className="ml-8">const client = await pool.connect();</div>
-                  <div className="ml-8">...</div>
+                  <nav className="flex-1 p-2 space-y-0.5">
+                    {[
+                      { name: "Overview", icon: LayoutDashboard, active: true },
+                      { name: "Sessions", icon: Activity, active: false },
+                      { name: "Settings", icon: Settings, active: false },
+                    ].map((item) => (
+                      <div
+                        key={item.name}
+                        className={`flex items-center gap-2.5 text-[13px] px-3 py-1.5 rounded-md ${
+                          item.active
+                            ? "bg-white/[0.06] text-white font-medium"
+                            : "text-zinc-500"
+                        }`}
+                      >
+                        <item.icon className="w-3.5 h-3.5" />
+                        {item.name}
+                      </div>
+                    ))}
+                  </nav>
+                  <div className="p-3 border-t border-white/[0.04]">
+                    <div className="flex items-center gap-2.5 px-2 py-1.5">
+                      <div className="w-5 h-5 rounded-full bg-zinc-800 border border-white/[0.1] flex items-center justify-center text-[10px] font-medium shrink-0">
+                        J
+                      </div>
+                      <span className="text-[13px] text-zinc-400 truncate">@johndoe</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Main content — Overview tab */}
+                <div className="flex-1 flex flex-col min-w-0">
+                  {/* Top bar */}
+                  <div className="h-12 flex items-center justify-between px-6 border-b border-white/[0.04] shrink-0">
+                    <span className="text-[13px] font-medium text-zinc-300">Overview</span>
+                    <span className="text-[12px] text-zinc-600 flex items-center gap-1.5 px-2 py-1 rounded-md border border-white/[0.06]">
+                      Refresh
+                    </span>
+                  </div>
+
+                  <div className="flex-1 p-6 overflow-hidden">
+                    {/* Listening On indicators */}
+                    <div className="flex flex-wrap items-center gap-4 mb-5 pb-3 border-b border-white/[0.04]">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-medium text-zinc-600 uppercase tracking-wider">Listening On</span>
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.06]">
+                          <DiscordIcon className="w-3 h-3 text-[#5865F2]" />
+                          <span className="text-[11px] text-zinc-400">2 Servers</span>
+                        </div>
+                      </div>
+                      <div className="w-px h-3 bg-white/[0.06] hidden sm:block" />
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-medium text-zinc-600 uppercase tracking-wider">Modifying</span>
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.06]">
+                          <Github className="w-3 h-3 text-zinc-500" />
+                          <span className="text-[11px] text-zinc-400">acme/api-server</span>
+                        </div>
+                      </div>
+                      <div className="w-px h-3 bg-white/[0.06] hidden sm:block" />
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-medium text-zinc-600 uppercase tracking-wider">Notifying</span>
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.06]">
+                          <TelegramIcon className="w-3 h-3 text-[#26A5E4]" />
+                          <span className="text-[11px] text-zinc-400">Active</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stats row */}
+                    <div className="flex flex-wrap gap-6 mb-6">
+                      {[
+                        { label: "Messages", value: "142", icon: MessageSquare },
+                        { label: "Issues", value: "23", icon: AlertTriangle },
+                        { label: "Pending", value: "3", icon: Clock },
+                        { label: "Manual", value: "1", icon: Hand },
+                        { label: "PRs Open", value: "4", icon: GitPullRequest },
+                        { label: "PRs Merged", value: "16", icon: GitMerge },
+                      ].map((stat) => (
+                        <div key={stat.label} className="border-l-2 border-white/[0.06] pl-3">
+                          <p className="text-[10px] font-medium text-zinc-600 mb-0.5">{stat.label}</p>
+                          <p className="text-lg font-semibold tracking-tight text-white">{stat.value}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Two-column: Issues and PRs */}
+                    <div className="grid lg:grid-cols-2 gap-6">
+                      {/* Issues */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-3 border-b border-white/[0.06] pb-1.5">
+                          <AlertTriangle className="w-3.5 h-3.5 text-zinc-600" />
+                          <span className="text-[12px] font-medium text-zinc-400">Issues</span>
+                          <span className="text-[10px] text-zinc-700 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">3</span>
+                        </div>
+                        <div className="space-y-px">
+                          {[
+                            { summary: "Connection pool timeout under load", status: "pr_created", user: "alex", time: "12m", pr: "#247" },
+                            { summary: "Auth token not refreshing on mobile", status: "pending", user: "mika", time: "1h" },
+                            { summary: "Webhook payload missing user ID", status: "resolved", user: "chan", time: "3h", pr: "#244" },
+                          ].map((item) => (
+                            <div key={item.summary} className="p-2.5 rounded-md hover:bg-white/[0.02]">
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <span className="text-[12px] font-medium text-zinc-300 line-clamp-1">{item.summary}</span>
+                                <span className="text-[10px] text-zinc-700 shrink-0">{item.time}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-1.5 py-0.5 rounded border text-[9px] font-medium uppercase tracking-wider ${
+                                  item.status === "pr_created" ? "text-blue-400 border-blue-400/20 bg-blue-400/10"
+                                    : item.status === "pending" ? "text-yellow-400 border-yellow-400/20 bg-yellow-400/10"
+                                    : "text-emerald-400 border-emerald-400/20 bg-emerald-400/10"
+                                }`}>
+                                  {item.status.replace("_", " ")}
+                                </span>
+                                <span className="text-[10px] text-zinc-600">@{item.user}</span>
+                                {item.pr && (
+                                  <span className="text-[10px] text-zinc-500 ml-auto flex items-center gap-1">
+                                    <GitPullRequest className="w-2.5 h-2.5" />
+                                    PR {item.pr}
+                                    <ExternalLink className="w-2 h-2" />
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Pull Requests */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-3 border-b border-white/[0.06] pb-1.5">
+                          <GitPullRequest className="w-3.5 h-3.5 text-zinc-600" />
+                          <span className="text-[12px] font-medium text-zinc-400">Pull Requests</span>
+                          <span className="text-[10px] text-zinc-700 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">3</span>
+                        </div>
+                        <div className="space-y-px">
+                          {[
+                            { number: "#247", repo: "acme/api-server", summary: "Add connection timeout", status: "open" },
+                            { number: "#246", repo: "acme/api-server", summary: "Fix webhook user ID mapping", status: "merged" },
+                            { number: "#244", repo: "acme/api-server", summary: "Retry failed auth refresh", status: "merged" },
+                          ].map((item) => (
+                            <div key={item.number} className="p-2.5 rounded-md hover:bg-white/[0.02]">
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <span className="text-[12px] font-medium text-zinc-300 line-clamp-1 flex items-center gap-1.5">
+                                  <span className="text-zinc-600">{item.number}</span>
+                                  {item.repo}
+                                </span>
+                                <ExternalLink className="w-2.5 h-2.5 text-zinc-700 shrink-0 mt-0.5" />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-1.5 py-0.5 rounded border text-[9px] font-medium uppercase tracking-wider ${
+                                  item.status === "open" ? "text-emerald-400 border-emerald-400/20 bg-emerald-400/10"
+                                    : "text-purple-400 border-purple-400/20 bg-purple-400/10"
+                                }`}>
+                                  {item.status}
+                                </span>
+                                <span className="text-[10px] text-zinc-600 truncate">{item.summary}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </motion.section>
 
-        {/* Features Grid */}
-        <motion.section
-          id="features"
-          className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 pt-12 border-t border-white/[0.08]"
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true, margin: "-100px" }}
-          variants={stagger}
+        {/* How it works */}
+        <section
+          id="how-it-works"
+          className="px-6 pb-32 max-w-[1100px] mx-auto"
         >
-          {features.map((feature) => (
-            <motion.div key={feature.title} variants={fadeUp} className="group cursor-default">
-              <div className="w-10 h-10 rounded-lg border border-white/[0.08] bg-[#0A0A0A] flex items-center justify-center mb-5 group-hover:bg-white/[0.04] transition-colors">
-                <feature.icon className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
-              </div>
-              <h3 className="text-[15px] font-medium mb-2">{feature.title}</h3>
-              <p className="text-[14px] text-zinc-500 leading-relaxed">
-                {feature.description}
-              </p>
-            </motion.div>
-          ))}
-        </motion.section>
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <h2 className="text-[28px] sm:text-[36px] font-semibold tracking-[-0.02em]">
+              Three steps. Zero effort.
+            </h2>
+            <p className="mt-3 text-zinc-500 text-[16px] max-w-md mx-auto">
+              From a Discord message to a merged pull request — fully automated.
+            </p>
+          </motion.div>
 
+          <motion.div
+            className="grid md:grid-cols-3 gap-px bg-white/[0.04] rounded-2xl overflow-hidden border border-white/[0.06]"
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={stagger}
+          >
+            {steps.map((step) => (
+              <motion.div
+                key={step.number}
+                variants={fadeUp}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="bg-[#08080A] p-8 md:p-10 flex flex-col"
+              >
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="text-[12px] font-mono text-zinc-600 tabular-nums">
+                    {step.number}
+                  </span>
+                  <div className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+                    <step.icon className="w-4 h-4 text-zinc-400" />
+                  </div>
+                </div>
+                <h3 className="text-[17px] font-semibold mb-2 tracking-[-0.01em]">
+                  {step.title}
+                </h3>
+                <p className="text-[14px] text-zinc-500 leading-relaxed">
+                  {step.description}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+
+        {/* Features */}
+        <section id="features" className="px-6 pb-32 max-w-[1100px] mx-auto">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <h2 className="text-[28px] sm:text-[36px] font-semibold tracking-[-0.02em]">
+              Everything you need
+            </h2>
+            <p className="mt-3 text-zinc-500 text-[16px] max-w-md mx-auto">
+              Built for teams that ship fast and care about their community.
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={stagger}
+          >
+            {features.map((feature) => (
+              <motion.div
+                key={feature.title}
+                variants={fadeUp}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="group p-6 rounded-xl border border-white/[0.06] bg-[#08080A] hover:border-white/[0.1] hover:bg-white/[0.02] transition-all duration-300"
+              >
+                <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-5 group-hover:bg-white/[0.06] transition-colors duration-300">
+                  <feature.icon className="w-[18px] h-[18px] text-zinc-500 group-hover:text-zinc-300 transition-colors duration-300" />
+                </div>
+                <h3 className="text-[15px] font-semibold mb-2 tracking-[-0.01em]">
+                  {feature.title}
+                </h3>
+                <p className="text-[13px] text-zinc-500 leading-relaxed">
+                  {feature.description}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+
+        {/* Bottom CTA */}
+        <motion.section
+          className="px-6 pb-32"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="max-w-[600px] mx-auto text-center">
+            <h2 className="text-[28px] sm:text-[36px] font-semibold tracking-[-0.02em] mb-4">
+              Start fixing bugs
+              <br />
+              before your users notice
+            </h2>
+            <p className="text-zinc-500 text-[16px] mb-8 max-w-sm mx-auto">
+              Connect your Discord and GitHub. CFCA handles the rest.
+            </p>
+            <button
+              onClick={onSignIn}
+              className="group inline-flex items-center gap-2.5 bg-white text-black px-7 py-3 rounded-full text-[14px] font-semibold hover:bg-zinc-100 transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+            >
+              Get started free
+              <ArrowRight className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200" />
+            </button>
+          </div>
+        </motion.section>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/[0.08] py-8 text-center text-[13px] text-zinc-600">
-        <div className="flex items-center justify-center gap-2">
-          <Terminal className="w-3 h-3" />
-          <span>CFCA — Built for the Mistral AI Hackathon</span>
+      <footer className="border-t border-white/[0.06] py-8">
+        <div className="max-w-[1100px] mx-auto px-6 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[13px] text-zinc-600">
+            <Terminal className="w-3 h-3" />
+            <span>CFCA</span>
+          </div>
+          <span className="text-[12px] text-zinc-700">
+            Built for the Mistral AI Hackathon
+          </span>
         </div>
       </footer>
     </div>

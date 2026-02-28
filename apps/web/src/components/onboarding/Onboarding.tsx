@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Github,
   GitBranch,
-  MessageSquare,
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
@@ -13,6 +12,7 @@ import {
   Lock,
   Globe,
 } from "lucide-react";
+import { DiscordIcon } from "@/components/icons/BrandIcons";
 import type { Repo } from "@/lib/types";
 
 type Props = {
@@ -34,7 +34,7 @@ function toGitUrl(htmlUrl: string): string {
 const stepsMeta = [
   { id: "github", label: "Connect", icon: Github },
   { id: "repo", label: "Repository", icon: GitBranch },
-  { id: "discord", label: "Discord", icon: MessageSquare },
+  { id: "discord", label: "Discord", icon: DiscordIcon },
 ];
 
 const slideVariants = {
