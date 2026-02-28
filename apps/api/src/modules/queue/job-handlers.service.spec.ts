@@ -145,6 +145,7 @@ describe('JobHandlersService', () => {
     );
     expect(queueService.enqueueReplyAck).toHaveBeenCalledWith({
       messageId: 'msg-1',
+      platformMessageId: 'discord-1',
       channelId: 'c1',
       threadId: null,
       ackText: AckService.DEFAULT_ACK,

@@ -62,6 +62,7 @@ export class JobHandlersService {
 
     await this.queueService.enqueueReplyAck({
       messageId: job.messageId,
+      platformMessageId: job.platformMessageId,
       channelId: job.channelId,
       threadId: job.threadId,
       ackText: AckService.DEFAULT_ACK,
@@ -152,7 +153,13 @@ export class JobHandlersService {
   }
 
   async handleReplyAck(job: ReplyAckJob): Promise<void> {
-    await this.ackService.sendAck(job.messageId, job.channelId, job.threadId, job.ackText);
+    await this.ackService.sendAck(
+      job.messageId,
+      job.platformMessageId,
+      job.channelId,
+      job.threadId,
+      job.ackText,
+    );
   }
 
   async handleNotifyTelegram(job: NotifyTelegramJob): Promise<void> {

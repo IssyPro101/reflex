@@ -16,11 +16,17 @@ export class AckService {
 
   async sendAck(
     messageId: string,
+    platformMessageId: string,
     channelId: string,
     threadId: string | null,
     text: string = AckService.DEFAULT_ACK,
   ): Promise<string> {
-    const ackMessageId = await this.discordService.replyToMessage(channelId, threadId, text);
+    const ackMessageId = await this.discordService.replyToMessage(
+      channelId,
+      threadId,
+      text,
+      platformMessageId,
+    );
 
     await this.messagesRepository.setAckMessageId(messageId, ackMessageId);
     await this.messagesRepository.updateStatus(messageId, MESSAGE_STATUS.ACKNOWLEDGED);

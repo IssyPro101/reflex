@@ -61,6 +61,7 @@ export class DiscordService implements OnModuleInit, OnModuleDestroy {
     channelId: string,
     threadId: string | null,
     content: string,
+    replyToMessageId?: string,
   ): Promise<string> {
     const targetId = threadId ?? channelId;
     const channel = await this.client.channels.fetch(targetId);
@@ -69,7 +70,12 @@ export class DiscordService implements OnModuleInit, OnModuleDestroy {
       throw new Error(`Discord channel not writable: ${targetId}`);
     }
 
-    const sent = await channel.send({ content });
+    const sent = await channel.send({
+      content,
+      ...(replyToMessageId && {
+        reply: { messageReference: replyToMessageId },
+      }),
+    });
     return sent.id;
   }
 

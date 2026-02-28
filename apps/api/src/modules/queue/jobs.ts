@@ -13,6 +13,7 @@ export interface ClassifyIntentJob {
 
 export interface ReplyAckJob {
   messageId: string;
+  platformMessageId: string;
   channelId: string;
   threadId: string | null;
   ackText: string;

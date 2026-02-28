@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { appendFile, cp, mkdtemp, mkdir, rm } from 'fs/promises';
+import { appendFile, cp, mkdtemp, mkdir, readFile, rm } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -297,7 +297,11 @@ export class VibeService {
         recursive: true,
         force: true,
       });
-      await appendFile(join(repoDir, '.gitignore'), '\n.vibe/\n');
+      const gitignorePath = join(repoDir, '.gitignore');
+      const gitignoreContent = await readFile(gitignorePath, 'utf-8').catch(() => '');
+      if (!gitignoreContent.includes('.vibe/')) {
+        await appendFile(gitignorePath, '\n.vibe/\n');
+      }
     } catch (error) {
       this.logger.warn(`Skipping .vibe asset copy: ${(error as Error).message}`);
     }

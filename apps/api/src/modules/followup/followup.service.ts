@@ -42,6 +42,7 @@ export class FollowUpService {
       message.channel_id,
       message.thread_id,
       '✅ This issue has been fixed and merged! Thanks for helping improve the product.',
+      message.platform_message_id,
     );
 
     await this.complaintsRepository.setResolved(complaint.id);
