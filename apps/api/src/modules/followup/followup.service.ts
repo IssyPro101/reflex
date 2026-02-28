@@ -38,6 +38,11 @@ export class FollowUpService {
       return false;
     }
 
+    if (message.status === MESSAGE_STATUS.FOLLOWED_UP) {
+      this.logger.warn(`Message ${message.id} already followed up, skipping duplicate follow-up`);
+      return true;
+    }
+
     await this.discordService.replyToMessage(
       message.channel_id,
       message.thread_id,
