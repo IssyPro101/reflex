@@ -224,7 +224,7 @@ export function Dashboard({
   const stats = overview
     ? [
         { label: "Messages", value: overview.counts.messagesTotal, icon: MessageSquare },
-        { label: "Complaints", value: overview.counts.complaintsTotal, icon: AlertTriangle },
+        { label: "Issues", value: overview.counts.complaintsTotal, icon: AlertTriangle },
         { label: "Pending", value: overview.counts.complaintsPending, icon: Clock },
         { label: "Manual", value: overview.counts.complaintsManual, icon: Hand },
         { label: "PRs Open", value: overview.counts.prsOpen, icon: GitPullRequest },
@@ -412,12 +412,12 @@ export function Dashboard({
                       <div>
                         <div className="flex items-center gap-2 mb-4 border-b border-white/[0.08] pb-2">
                           <AlertTriangle className="w-4 h-4 text-zinc-500" />
-                          <h2 className="text-[13px] font-medium text-zinc-300">Complaints</h2>
+                          <h2 className="text-[13px] font-medium text-zinc-300">Issues</h2>
                           <span className="text-[11px] text-zinc-600 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">{overview.recentComplaints.length}</span>
                         </div>
-                        <div className="space-y-[1px]">
+                        <div className="space-y-[1px] max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
                           {overview.recentComplaints.length === 0 ? (
-                            <p className="text-[13px] text-zinc-600">No complaints yet.</p>
+                            <p className="text-[13px] text-zinc-600">No issues yet.</p>
                           ) : (
                             overview.recentComplaints.map((item) => (
                               <div
@@ -459,7 +459,7 @@ export function Dashboard({
                           <h2 className="text-[13px] font-medium text-zinc-300">Pull Requests</h2>
                           <span className="text-[11px] text-zinc-600 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">{overview.recentPrs.length}</span>
                         </div>
-                        <div className="space-y-[1px]">
+                        <div className="space-y-[1px] max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
                           {overview.recentPrs.length === 0 ? (
                             <p className="text-[13px] text-zinc-600">No pull requests yet.</p>
                           ) : (
