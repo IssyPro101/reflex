@@ -46,44 +46,46 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
   return (
     <div className="min-h-screen bg-black text-white selection:bg-white/20">
       {/* Navbar */}
-      <nav className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-6 py-4 bg-black/80 backdrop-blur-md border-b border-white/[0.08]">
-        <div className="flex items-center gap-2">
-          <Terminal className="w-4 h-4 text-white" />
-          <span className="font-semibold tracking-tight text-[15px]">CFCA</span>
-        </div>
+      <nav className="fixed top-0 inset-x-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/[0.08]">
+        <div className="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-1">
+            <Terminal className="w-4 h-4 text-white" />
+            <span className="font-semibold tracking-tight text-[15px]">CFCA</span>
+          </div>
 
-        <div className="hidden md:flex items-center gap-6 text-[13px] text-zinc-400 font-medium">
-          <a href="#product" className="hover:text-white transition-colors">
-            Product
-          </a>
-          <a href="#features" className="hover:text-white transition-colors">
-            Features
-          </a>
-          <a href="#workflow" className="hover:text-white transition-colors">
-            Workflow
-          </a>
-        </div>
+          <div className="hidden md:flex items-center justify-center gap-6 text-[13px] text-zinc-400 font-medium">
+            <a href="#product" className="hover:text-white transition-colors">
+              Product
+            </a>
+            <a href="#features" className="hover:text-white transition-colors">
+              Features
+            </a>
+            <a href="#workflow" className="hover:text-white transition-colors">
+              Workflow
+            </a>
+          </div>
 
-        <div className="flex items-center gap-3 text-[13px] font-medium">
-          <button
-            onClick={onSignIn}
-            className="hidden sm:block text-zinc-400 hover:text-white transition-colors"
-          >
-            Log in
-          </button>
-          <button
-            onClick={onSignIn}
-            className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-zinc-200 transition-colors"
-          >
-            Sign up
-          </button>
+          <div className="flex items-center justify-end gap-3 text-[13px] font-medium flex-1">
+            <button
+              onClick={onSignIn}
+              className="hidden sm:block text-zinc-400 hover:text-white transition-colors"
+            >
+              Log in
+            </button>
+            <button
+              onClick={onSignIn}
+              className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-zinc-200 transition-colors"
+            >
+              Sign up
+            </button>
+          </div>
         </div>
       </nav>
 
-      <main className="pt-32 pb-24 px-6 max-w-[1200px] mx-auto hero-glow">
+      <main className="pt-24 pb-24 px-6 max-w-[1200px] mx-auto hero-glow">
         {/* Hero Section */}
         <motion.section
-          className="max-w-3xl pt-16 md:pt-24 pb-16"
+          className="max-w-3xl mx-auto text-center pt-8 md:pt-12 pb-16 flex flex-col items-center"
           initial="initial"
           animate="animate"
           variants={stagger}
