@@ -7,6 +7,7 @@ import {
   Settings,
   LogOut,
   Terminal,
+  Activity,
   MessageSquare,
   AlertTriangle,
   Clock,
@@ -34,6 +35,7 @@ import type {
 } from "@/lib/types";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { ActiveSessions } from "@/components/sessions/ActiveSessions";
 
 type Props = {
   accessToken: string;
@@ -42,7 +44,7 @@ type Props = {
   onRefresh: () => void;
 };
 
-type Tab = "overview" | "settings";
+type Tab = "overview" | "sessions" | "settings";
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -234,6 +236,7 @@ export function Dashboard({
 
   const navItems = [
     { id: "overview" as Tab, label: "Overview", icon: LayoutDashboard },
+    { id: "sessions" as Tab, label: "Sessions", icon: Activity },
     { id: "settings" as Tab, label: "Settings", icon: Settings },
   ];
 
@@ -329,7 +332,7 @@ export function Dashboard({
               <Menu className="w-4 h-4" />
             </button>
             <h1 className="text-[14px] font-medium text-zinc-200">
-              {tab === "overview" ? "Overview" : "Settings"}
+              {tab === "overview" ? "Overview" : tab === "sessions" ? "Agent Sessions" : "Settings"}
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -494,6 +497,17 @@ export function Dashboard({
                       </div>
                     </div>
                   )}
+                </motion.div>
+              ) : tab === "sessions" ? (
+                <motion.div
+                  key="sessions"
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  variants={fadeIn}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ActiveSessions accessToken={accessToken} />
                 </motion.div>
               ) : (
                 <motion.div

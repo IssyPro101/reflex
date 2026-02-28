@@ -1,4 +1,4 @@
-import type { AuthMeResponse, ObservabilityResponse, Repo } from "./types";
+import type { AuthMeResponse, ObservabilityResponse, Repo, VibeSession } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -64,4 +64,10 @@ export const api = {
 
   unlinkTelegram: (token: string) =>
     request<void>("/auth/telegram/link", token, { method: "DELETE" }),
+
+  getSessions: (token: string) =>
+    request<{ sessions: VibeSession[] }>("/vibe/sessions", token),
+
+  getSessionsStreamUrl: (token: string) =>
+    `${API_URL}/vibe/sessions/stream?token=${encodeURIComponent(token)}`,
 };

@@ -9,6 +9,7 @@ import { CommandResult, runCommand } from './command-runner';
 import { evaluateChangedFiles } from './file-safety';
 import { buildCreatePrPrompt } from './prompt-template';
 import { extractPrNumber } from './vibe-output';
+import { VibeSessionStore } from './vibe-session.store';
 
 interface CreatePrInput {
   complaintId: string;
@@ -40,7 +41,10 @@ export type CreatePrResult =
 export class VibeService {
   private readonly logger = new Logger(VibeService.name);
 
-  constructor(@InjectAppConfig() private readonly config: AppConfig) {}
+  constructor(
+    @InjectAppConfig() private readonly config: AppConfig,
+    private readonly sessionStore: VibeSessionStore,
+  ) {}
 
   async createPr(input: CreatePrInput): Promise<CreatePrResult> {
     const workspaceRoot = this.resolveWorkspaceRoot();
@@ -95,10 +99,12 @@ export class VibeService {
         '--max-price',
         String(this.config.VIBE_MAX_PRICE),
         '--output',
-        'json',
+        'streaming',
       ];
 
-      this.logger.log(`Running ${this.config.VIBE_BIN} in ${repoDir}`);
+      const sessionId = this.sessionStore.createSession(input.complaintId, input.summary);
+
+      this.logger.log(`Running ${this.config.VIBE_BIN} in ${repoDir} (session=${sessionId})`);
       const vibeResult = await runCommand(this.config.VIBE_BIN, vibeArgs, {
         cwd: repoDir,
         timeoutMs: 12 * 60 * 1000,
@@ -106,9 +112,12 @@ export class VibeService {
           ...this.buildGithubEnv(input.githubToken),
           VIBE_HOME: join(repoDir, '.vibe'),
         },
+        onStdout: (chunk) => this.sessionStore.appendOutput(sessionId, chunk),
+        onStderr: (chunk) => this.sessionStore.appendOutput(sessionId, chunk),
       });
 
       if (vibeResult.exitCode !== 0) {
+        this.sessionStore.endSession(sessionId, 'failed');
         const reason = this.formatCommandFailure('vibe', vibeResult, input.githubToken);
         this.logger.error(reason);
         return {
@@ -119,6 +128,8 @@ export class VibeService {
           warnings: [],
         };
       }
+
+      this.sessionStore.endSession(sessionId, 'completed');
 
       const changedFiles = await this.getChangedFiles(repoDir, input.baseBranch);
       if (changedFiles.length === 0) {

@@ -66,3 +66,20 @@ export type Repo = {
   default_branch: string;
   private: boolean;
 };
+
+export type VibeSession = {
+  id: string;
+  complaintId: string;
+  summary: string;
+  status: "running" | "completed" | "failed";
+  outputLines: string[];
+  startedAt: string;
+  completedAt: string | null;
+};
+
+export type VibeSessionEvent = {
+  type: "session_started" | "session_output" | "session_ended";
+  sessionId: string;
+  session: VibeSession;
+  newChunk?: string;
+};
