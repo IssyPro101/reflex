@@ -2,11 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { MESSAGE_STATUS, PR_STATUS } from '../../common/status';
 import { AckService } from '../ack/ack.service';
-import { InjectAppConfig } from '../config/get-config';
-import { AppConfig } from '../config/app-config';
 import { ComplaintsRepository } from '../db/complaints.repository';
 import { MessagesRepository } from '../db/messages.repository';
 import { PrsRepository } from '../db/prs.repository';
+import { UserConnectionRow } from '../db/types';
+import { UserConnectionsRepository } from '../db/user-connections.repository';
+import { UserTargetsRepository } from '../db/user-targets.repository';
 import { FollowUpService } from '../followup/followup.service';
 import { TelegramService } from '../telegram/telegram.service';
 import { isActionableIntent } from '../triage/triage.types';
@@ -27,11 +28,12 @@ export class JobHandlersService {
   private readonly logger = new Logger(JobHandlersService.name);
 
   constructor(
-    @InjectAppConfig() private readonly config: AppConfig,
     private readonly triageService: TriageService,
     private readonly messagesRepository: MessagesRepository,
     private readonly complaintsRepository: ComplaintsRepository,
     private readonly prsRepository: PrsRepository,
+    private readonly userConnectionsRepository: UserConnectionsRepository,
+    private readonly userTargetsRepository: UserTargetsRepository,
     private readonly queueService: QueueService,
     private readonly ackService: AckService,
     private readonly vibeService: VibeService,
@@ -65,15 +67,32 @@ export class JobHandlersService {
       ackText: AckService.DEFAULT_ACK,
     });
 
+    const createPrContext = await this.resolveCreatePrContext(job);
+    if (!createPrContext) {
+      const reason =
+        'No linked GitHub account with target repo/base branch found for this user. Configure target repo in dashboard and link Discord user ID.';
+
+      await this.complaintsRepository.setNeedsManual(complaint.id, reason);
+      await this.queueService.enqueueTelegram({
+        type: 'pr_failed',
+        payload: {
+          summary: triage.summary,
+          reason,
+          username: job.username,
+        },
+      });
+      return;
+    }
+
     await this.queueService.enqueueCreatePr({
       complaintId: complaint.id,
       messageId: job.messageId,
       summary: triage.summary,
       originalMessage: job.text,
-      repoUrl: this.config.TARGET_REPO_URL,
-      baseBranch: this.config.TARGET_BASE_BRANCH,
+      repoUrl: createPrContext.repoUrl,
+      baseBranch: createPrContext.baseBranch,
       username: job.username,
-      githubToken: this.config.GITHUB_FALLBACK_TOKEN,
+      githubToken: createPrContext.githubToken,
     });
   }
 
@@ -174,5 +193,43 @@ export class JobHandlersService {
     }
 
     return repoUrl;
+  }
+
+  private async resolveCreatePrContext(
+    job: ClassifyIntentJob,
+  ): Promise<{ repoUrl: string; baseBranch: string; githubToken: string } | null> {
+    const connection = await this.resolveUserConnection(job);
+    if (!connection) {
+      this.logger.warn(`No user connection resolved for Discord user ${job.userId} (${job.username})`);
+      return null;
+    }
+
+    const target = await this.userTargetsRepository.getBySupabaseUserId(connection.supabase_user_id);
+    if (!target) {
+      this.logger.warn(`No target config for Supabase user ${connection.supabase_user_id}`);
+      return null;
+    }
+
+    return {
+      repoUrl: target.repo_url,
+      baseBranch: target.base_branch,
+      githubToken: connection.github_access_token,
+    };
+  }
+
+  private async resolveUserConnection(job: ClassifyIntentJob): Promise<UserConnectionRow | null> {
+    if (job.supabaseUserId) {
+      const bySupabase = await this.userConnectionsRepository.getBySupabaseUserId(job.supabaseUserId);
+      if (bySupabase) {
+        return bySupabase;
+      }
+    }
+
+    const byDiscordUserId = await this.userConnectionsRepository.getByDiscordUserId(job.userId);
+    if (byDiscordUserId) {
+      return byDiscordUserId;
+    }
+
+    return this.userConnectionsRepository.getByGithubLogin(job.username);
   }
 }

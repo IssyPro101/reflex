@@ -3,6 +3,7 @@ export interface ClassifyIntentJob {
   platformMessageId: string;
   userId: string;
   username: string;
+  supabaseUserId?: string;
   channelId: string;
   threadId: string | null;
   text: string;

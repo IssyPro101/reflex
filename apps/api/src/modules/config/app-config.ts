@@ -32,9 +32,6 @@ const envSchema = z.object({
   GITHUB_OAUTH_CLIENT_ID: z.string().default(''),
   GITHUB_OAUTH_CLIENT_SECRET: z.string().default(''),
   GITHUB_OAUTH_SCOPE: z.string().default('repo read:user'),
-  GITHUB_FALLBACK_TOKEN: z.string().optional(),
-  TARGET_REPO_URL: z.string().min(1),
-  TARGET_BASE_BRANCH: z.string().default('main'),
 
   VIBE_BIN: z.string().default('vibe'),
   VIBE_AGENT: z.string().default('pr-agent'),

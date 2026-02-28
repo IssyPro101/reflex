@@ -44,6 +44,10 @@ pnpm test
 - `GET /auth/github/callback`
 - `GET /auth/me`
 - `GET /auth/github/repos`
+- `GET /auth/github/target`
+- `PUT /auth/github/target`
+- `POST /auth/discord/link`
+- `DELETE /auth/discord/link`
 - `POST /auth/github/disconnect`
 - `GET /observability/overview`
 

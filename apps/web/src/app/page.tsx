@@ -15,6 +15,11 @@ type AuthMeResponse = {
     login?: string;
     name?: string | null;
     scope?: string | null;
+    discordUserId?: string | null;
+    target?: {
+      repoUrl: string;
+      baseBranch: string;
+    } | null;
   };
 };
 
@@ -63,6 +68,11 @@ type Repo = {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
+function toGitUrl(htmlUrl: string): string {
+  const trimmed = htmlUrl.replace(/\/+$/, "");
+  return trimmed.endsWith(".git") ? trimmed : `${trimmed}.git`;
+}
+
 export default function Home() {
   const missingSupabaseEnvMessage =
     "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.";
@@ -77,6 +87,11 @@ export default function Home() {
   const [authState, setAuthState] = useState<AuthMeResponse | null>(null);
   const [overview, setOverview] = useState<ObservabilityResponse | null>(null);
   const [repos, setRepos] = useState<Repo[]>([]);
+  const [targetRepoUrl, setTargetRepoUrl] = useState("");
+  const [targetBaseBranch, setTargetBaseBranch] = useState("main");
+  const [discordUserId, setDiscordUserId] = useState("");
+  const [savingTarget, setSavingTarget] = useState(false);
+  const [savingDiscordLink, setSavingDiscordLink] = useState(false);
   const [error, setError] = useState<string>(supabaseConfigured ? "" : missingSupabaseEnvMessage);
 
   const userLabel = useMemo(() => {
@@ -91,15 +106,18 @@ export default function Home() {
   }, [authState]);
 
   const loadBackendData = useCallback(async (token: string | null) => {
-    if (!token) {
-      setAuthState({
-        app: { authenticated: false },
-        github: { connected: false },
-      });
-      setOverview(null);
-      setRepos([]);
-      return;
-    }
+      if (!token) {
+        setAuthState({
+          app: { authenticated: false },
+          github: { connected: false },
+        });
+        setOverview(null);
+        setRepos([]);
+        setTargetRepoUrl("");
+        setTargetBaseBranch("main");
+        setDiscordUserId("");
+        return;
+      }
 
     try {
       const meResponse = await fetch(`${API_URL}/auth/me`, {
@@ -124,8 +142,20 @@ export default function Home() {
       if (!meJson.app.authenticated) {
         setOverview(null);
         setRepos([]);
+        setTargetRepoUrl("");
+        setTargetBaseBranch("main");
+        setDiscordUserId("");
         return;
       }
+
+      if (meJson.github.target) {
+        setTargetRepoUrl(meJson.github.target.repoUrl);
+        setTargetBaseBranch(meJson.github.target.baseBranch);
+      } else {
+        setTargetRepoUrl("");
+        setTargetBaseBranch("main");
+      }
+      setDiscordUserId(meJson.github.discordUserId ?? "");
 
       const overviewResponse = await fetch(`${API_URL}/observability/overview?limit=15`, {
         headers: {
@@ -217,6 +247,9 @@ export default function Home() {
     });
     setOverview(null);
     setRepos([]);
+    setTargetRepoUrl("");
+    setTargetBaseBranch("main");
+    setDiscordUserId("");
   }
 
   async function connectGithub() {
@@ -262,6 +295,118 @@ export default function Home() {
     }
 
     await loadBackendData(accessToken);
+  }
+
+  async function saveGithubTarget() {
+    if (!accessToken) {
+      setError("Sign in first.");
+      return;
+    }
+
+    if (!targetRepoUrl.trim()) {
+      setError("Select a target repository.");
+      return;
+    }
+
+    if (!targetBaseBranch.trim()) {
+      setError("Enter a base branch.");
+      return;
+    }
+
+    setSavingTarget(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}/auth/github/target`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          repoUrl: targetRepoUrl,
+          baseBranch: targetBaseBranch,
+        }),
+      });
+
+      if (!response.ok) {
+        setError("Failed to save target repository settings.");
+        return;
+      }
+
+      const payload = (await response.json()) as {
+        target: { repoUrl: string; baseBranch: string };
+      };
+      setTargetRepoUrl(payload.target.repoUrl);
+      setTargetBaseBranch(payload.target.baseBranch);
+      await loadBackendData(accessToken);
+    } finally {
+      setSavingTarget(false);
+    }
+  }
+
+  async function linkDiscordUser() {
+    if (!accessToken) {
+      setError("Sign in first.");
+      return;
+    }
+
+    const normalized = discordUserId.trim();
+    if (!normalized) {
+      setError("Enter your Discord user ID.");
+      return;
+    }
+
+    setSavingDiscordLink(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}/auth/discord/link`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ discordUserId: normalized }),
+      });
+
+      if (!response.ok) {
+        setError("Failed to link Discord user ID.");
+        return;
+      }
+
+      await loadBackendData(accessToken);
+    } finally {
+      setSavingDiscordLink(false);
+    }
+  }
+
+  async function unlinkDiscordUser() {
+    if (!accessToken) {
+      return;
+    }
+
+    setSavingDiscordLink(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}/auth/discord/link`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        setError("Failed to unlink Discord user ID.");
+        return;
+      }
+
+      setDiscordUserId("");
+      await loadBackendData(accessToken);
+    } finally {
+      setSavingDiscordLink(false);
+    }
   }
 
   return (
@@ -330,16 +475,91 @@ export default function Home() {
             <div className="mt-4 grid gap-2 text-sm text-slate-300">
               <p className="text-slate-200">Recent writable repositories</p>
               {repos.map((repo) => (
-                <a
+                <div
                   key={repo.id}
-                  href={repo.html_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded border border-slate-800 px-3 py-2 hover:bg-slate-800"
+                  className="flex items-center justify-between gap-3 rounded border border-slate-800 px-3 py-2"
                 >
-                  {repo.full_name} ({repo.default_branch})
-                </a>
+                  <a
+                    href={repo.html_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:underline"
+                  >
+                    {repo.full_name} ({repo.default_branch})
+                  </a>
+                  <button
+                    onClick={() => {
+                      setTargetRepoUrl(toGitUrl(repo.html_url));
+                      if (!targetBaseBranch.trim()) {
+                        setTargetBaseBranch(repo.default_branch);
+                      }
+                    }}
+                    className="rounded border border-slate-700 px-2 py-1 text-xs hover:bg-slate-800"
+                  >
+                    Use
+                  </button>
+                </div>
               ))}
+            </div>
+          ) : null}
+
+          {authState?.github.connected ? (
+            <div className="mt-5 grid gap-3 rounded border border-slate-800 bg-slate-950/40 p-4 text-sm">
+              <p className="font-medium text-slate-200">PR target settings (per user)</p>
+              <label className="grid gap-1">
+                <span className="text-xs text-slate-400">Target repository URL</span>
+                <input
+                  value={targetRepoUrl}
+                  onChange={(event) => setTargetRepoUrl(event.target.value)}
+                  placeholder="https://github.com/owner/repo.git"
+                  className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
+                />
+              </label>
+              <label className="grid gap-1">
+                <span className="text-xs text-slate-400">Base branch</span>
+                <input
+                  value={targetBaseBranch}
+                  onChange={(event) => setTargetBaseBranch(event.target.value)}
+                  placeholder="main"
+                  className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
+                />
+              </label>
+              <button
+                onClick={saveGithubTarget}
+                disabled={savingTarget}
+                className="w-fit rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800 disabled:opacity-60"
+              >
+                {savingTarget ? "Saving..." : "Save target"}
+              </button>
+
+              <div className="mt-2 border-t border-slate-800 pt-3">
+                <p className="font-medium text-slate-200">Discord identity link</p>
+                <p className="mt-1 text-xs text-slate-400">
+                  Link your Discord user ID so inbound Discord complaints use your saved repo target.
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <input
+                    value={discordUserId}
+                    onChange={(event) => setDiscordUserId(event.target.value)}
+                    placeholder="Discord user ID"
+                    className="min-w-[220px] rounded border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
+                  />
+                  <button
+                    onClick={linkDiscordUser}
+                    disabled={savingDiscordLink}
+                    className="rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800 disabled:opacity-60"
+                  >
+                    {savingDiscordLink ? "Saving..." : "Link Discord ID"}
+                  </button>
+                  <button
+                    onClick={unlinkDiscordUser}
+                    disabled={savingDiscordLink}
+                    className="rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800 disabled:opacity-60"
+                  >
+                    Unlink
+                  </button>
+                </div>
+              </div>
             </div>
           ) : null}
         </section>

@@ -1,16 +1,20 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
   Headers,
   HttpCode,
   HttpStatus,
   Post,
+  Put,
   Query,
   Res,
 } from '@nestjs/common';
 import { Response } from 'express';
 
 import { AuthService } from './auth.service';
+import { discordLinkSchema, githubTargetSchema } from './auth.types';
 
 @Controller('auth')
 export class AuthController {
@@ -55,6 +59,44 @@ export class AuthController {
   async repos(@Headers('authorization') authorizationHeader: string | undefined) {
     const repos = await this.authService.listRepos(authorizationHeader);
     return { repos };
+  }
+
+  @Get('github/target')
+  async githubTarget(
+    @Headers('authorization') authorizationHeader: string | undefined,
+  ): Promise<{ target: { repoUrl: string; baseBranch: string } | null }> {
+    const target = await this.authService.getGithubTarget(authorizationHeader);
+    return { target };
+  }
+
+  @Put('github/target')
+  async setGithubTarget(
+    @Headers('authorization') authorizationHeader: string | undefined,
+    @Body() body: unknown,
+  ): Promise<{ target: { repoUrl: string; baseBranch: string } }> {
+    const input = githubTargetSchema.parse(body);
+    const target = await this.authService.setGithubTarget(authorizationHeader, input);
+    return { target };
+  }
+
+  @Post('discord/link')
+  @HttpCode(HttpStatus.OK)
+  async linkDiscordUser(
+    @Headers('authorization') authorizationHeader: string | undefined,
+    @Body() body: unknown,
+  ): Promise<{ linked: boolean }> {
+    const input = discordLinkSchema.parse(body);
+    await this.authService.linkDiscordUser(authorizationHeader, input.discordUserId);
+    return { linked: true };
+  }
+
+  @Delete('discord/link')
+  @HttpCode(HttpStatus.OK)
+  async unlinkDiscordUser(
+    @Headers('authorization') authorizationHeader: string | undefined,
+  ): Promise<{ unlinked: boolean }> {
+    await this.authService.unlinkDiscordUser(authorizationHeader);
+    return { unlinked: true };
   }
 
   @Post('github/disconnect')

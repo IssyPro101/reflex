@@ -34,7 +34,6 @@ Start from [`apps/api/.env.example`](./apps/api/.env.example) and set:
 - `DATABASE_URL`
 - `REDIS_URL`
 - `MISTRAL_API_KEY`
-- `TARGET_REPO_URL`
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 - `APP_AUTH_SECRET`

@@ -53,3 +53,12 @@ export interface UserConnectionRow {
   created_at: string;
   updated_at: string;
 }
+
+export interface UserTargetRow {
+  id: string;
+  supabase_user_id: string;
+  repo_url: string;
+  base_branch: string;
+  created_at: string;
+  updated_at: string;
+}

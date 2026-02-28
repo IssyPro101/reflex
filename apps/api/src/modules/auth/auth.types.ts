@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export interface GithubTokenResponse {
   access_token: string;
   scope: string;
@@ -29,3 +31,21 @@ export interface SupabaseUserResponse {
   id: string;
   email?: string | null;
 }
+
+export interface GithubTargetResponse {
+  repoUrl: string;
+  baseBranch: string;
+}
+
+export const githubTargetSchema = z.object({
+  repoUrl: z.string().min(1),
+  baseBranch: z.string().min(1).default('main'),
+});
+
+export type GithubTargetInput = z.infer<typeof githubTargetSchema>;
+
+export const discordLinkSchema = z.object({
+  discordUserId: z.string().min(1),
+});
+
+export type DiscordLinkInput = z.infer<typeof discordLinkSchema>;

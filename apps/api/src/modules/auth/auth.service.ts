@@ -1,10 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
 
 import { InjectAppConfig } from '../config/get-config';
 import { AppConfig } from '../config/app-config';
 import { UserConnectionsRepository } from '../db/user-connections.repository';
+import { UserTargetsRepository } from '../db/user-targets.repository';
 import {
+  GithubTargetInput,
+  GithubTargetResponse,
   GithubRepoResponse,
   GithubTokenResponse,
   GithubUserResponse,
@@ -23,6 +26,7 @@ export class AuthService {
   constructor(
     @InjectAppConfig() private readonly config: AppConfig,
     private readonly userConnectionsRepository: UserConnectionsRepository,
+    private readonly userTargetsRepository: UserTargetsRepository,
   ) {}
 
   async getGithubConnectUrl(
@@ -110,6 +114,8 @@ export class AuthService {
       login?: string;
       name?: string | null;
       scope?: string | null;
+      discordUserId?: string | null;
+      target?: GithubTargetResponse | null;
     };
   }> {
     const user = await this.getSupabaseUser(authorizationHeader);
@@ -135,6 +141,8 @@ export class AuthService {
       };
     }
 
+    const target = await this.userTargetsRepository.getBySupabaseUserId(user.id);
+
     return {
       app: {
         authenticated: true,
@@ -146,6 +154,13 @@ export class AuthService {
         login: connection.github_login,
         name: connection.github_name,
         scope: connection.github_scope,
+        discordUserId: connection.session_id,
+        target: target
+          ? {
+              repoUrl: target.repo_url,
+              baseBranch: target.base_branch,
+            }
+          : null,
       },
     };
   }
@@ -182,6 +197,81 @@ export class AuthService {
   async disconnectGithub(authorizationHeader: string | undefined): Promise<void> {
     const user = await this.requireSupabaseUser(authorizationHeader);
     await this.userConnectionsRepository.deleteBySupabaseUserId(user.id);
+  }
+
+  async getGithubTarget(
+    authorizationHeader: string | undefined,
+  ): Promise<GithubTargetResponse | null> {
+    const user = await this.requireSupabaseUser(authorizationHeader);
+    const connection = await this.userConnectionsRepository.getBySupabaseUserId(user.id);
+
+    if (!connection) {
+      throw new UnauthorizedException('GitHub is not connected');
+    }
+
+    const target = await this.userTargetsRepository.getBySupabaseUserId(user.id);
+    if (!target) {
+      return null;
+    }
+
+    return {
+      repoUrl: target.repo_url,
+      baseBranch: target.base_branch,
+    };
+  }
+
+  async setGithubTarget(
+    authorizationHeader: string | undefined,
+    input: GithubTargetInput,
+  ): Promise<GithubTargetResponse> {
+    const user = await this.requireSupabaseUser(authorizationHeader);
+    const connection = await this.userConnectionsRepository.getBySupabaseUserId(user.id);
+
+    if (!connection) {
+      throw new UnauthorizedException('GitHub is not connected');
+    }
+
+    const ownerRepo = this.extractOwnerRepo(input.repoUrl);
+    const repoUrl = `https://github.com/${ownerRepo}.git`;
+    const baseBranch = this.normalizeBranch(input.baseBranch);
+
+    await this.assertRepoWriteAccess(connection.github_access_token, ownerRepo);
+    await this.assertBranchExists(connection.github_access_token, ownerRepo, baseBranch);
+
+    const target = await this.userTargetsRepository.upsertBySupabaseUserId({
+      supabaseUserId: user.id,
+      repoUrl,
+      baseBranch,
+    });
+
+    return {
+      repoUrl: target.repo_url,
+      baseBranch: target.base_branch,
+    };
+  }
+
+  async linkDiscordUser(
+    authorizationHeader: string | undefined,
+    discordUserId: string,
+  ): Promise<void> {
+    const user = await this.requireSupabaseUser(authorizationHeader);
+    const connection = await this.userConnectionsRepository.getBySupabaseUserId(user.id);
+
+    if (!connection) {
+      throw new UnauthorizedException('GitHub is not connected');
+    }
+
+    const normalized = discordUserId.trim();
+    if (!normalized) {
+      throw new BadRequestException('discordUserId is required');
+    }
+
+    await this.userConnectionsRepository.setDiscordUserId(user.id, normalized);
+  }
+
+  async unlinkDiscordUser(authorizationHeader: string | undefined): Promise<void> {
+    const user = await this.requireSupabaseUser(authorizationHeader);
+    await this.userConnectionsRepository.clearDiscordUserId(user.id);
   }
 
   async getGithubContextFromAuthHeader(
@@ -290,6 +380,107 @@ export class AuthService {
     }
 
     return next;
+  }
+
+  private extractOwnerRepo(repoValue: string): string {
+    const trimmed = repoValue.trim().replace(/\.git$/i, '');
+    const ownerRepoRegex = /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/;
+
+    if (ownerRepoRegex.test(trimmed)) {
+      return trimmed;
+    }
+
+    try {
+      const parsed = new URL(trimmed);
+      if (parsed.hostname.toLowerCase() !== 'github.com') {
+        throw new BadRequestException('Only github.com repositories are supported');
+      }
+
+      const path = parsed.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
+      if (!ownerRepoRegex.test(path)) {
+        throw new BadRequestException('Invalid GitHub repository format');
+      }
+
+      return path;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Invalid repo URL. Expected owner/repo or a github.com URL');
+    }
+  }
+
+  private normalizeBranch(branchValue: string): string {
+    const branch = branchValue.trim();
+    if (!branch) {
+      throw new BadRequestException('baseBranch is required');
+    }
+
+    if (
+      branch.length > 255 ||
+      branch.startsWith('/') ||
+      branch.endsWith('/') ||
+      branch.startsWith('-') ||
+      branch.endsWith('.') ||
+      branch.includes('..') ||
+      /[\s~^:?*\[\]\\]/.test(branch)
+    ) {
+      throw new BadRequestException('Invalid base branch name');
+    }
+
+    return branch;
+  }
+
+  private async assertRepoWriteAccess(accessToken: string, ownerRepo: string): Promise<void> {
+    const response = await fetch(`https://api.github.com/repos/${ownerRepo}`, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${accessToken}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+    });
+
+    if (response.status === 404) {
+      throw new BadRequestException(`Repository not found or inaccessible: ${ownerRepo}`);
+    }
+
+    if (!response.ok) {
+      throw new Error(`GitHub repo validation failed: ${response.status}`);
+    }
+
+    const repo = (await response.json()) as GithubRepoResponse;
+    const writable = repo.permissions?.push || repo.permissions?.admin || repo.permissions?.maintain;
+
+    if (!writable) {
+      throw new UnauthorizedException(
+        `GitHub token does not have write access to repository: ${ownerRepo}`,
+      );
+    }
+  }
+
+  private async assertBranchExists(
+    accessToken: string,
+    ownerRepo: string,
+    branch: string,
+  ): Promise<void> {
+    const response = await fetch(
+      `https://api.github.com/repos/${ownerRepo}/branches/${encodeURIComponent(branch)}`,
+      {
+        headers: {
+          Accept: 'application/vnd.github+json',
+          Authorization: `Bearer ${accessToken}`,
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      },
+    );
+
+    if (response.status === 404) {
+      throw new BadRequestException(`Base branch "${branch}" not found in repository ${ownerRepo}`);
+    }
+
+    if (!response.ok) {
+      throw new Error(`GitHub branch validation failed: ${response.status}`);
+    }
   }
 
   private async getSupabaseUser(

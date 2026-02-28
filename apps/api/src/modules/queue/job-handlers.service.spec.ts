@@ -1,7 +1,6 @@
 import { AckService } from '../ack/ack.service';
 import { MESSAGE_STATUS } from '../../common/status';
 import { JobHandlersService } from './job-handlers.service';
-import { makeAppConfig } from '../../../test/support/app-config';
 
 describe('JobHandlersService', () => {
   function createService() {
@@ -21,6 +20,16 @@ describe('JobHandlersService', () => {
 
     const prsRepository = {
       create: jest.fn().mockResolvedValue({ id: 'pr-row-1' }),
+    };
+
+    const userConnectionsRepository = {
+      getBySupabaseUserId: jest.fn(),
+      getByDiscordUserId: jest.fn(),
+      getByGithubLogin: jest.fn(),
+    };
+
+    const userTargetsRepository = {
+      getBySupabaseUserId: jest.fn(),
     };
 
     const queueService = {
@@ -46,11 +55,12 @@ describe('JobHandlersService', () => {
     };
 
     const service = new JobHandlersService(
-      makeAppConfig(),
       triageService as any,
       messagesRepository as any,
       complaintsRepository as any,
       prsRepository as any,
+      userConnectionsRepository as any,
+      userTargetsRepository as any,
       queueService as any,
       ackService as any,
       vibeService as any,
@@ -64,6 +74,8 @@ describe('JobHandlersService', () => {
       messagesRepository,
       complaintsRepository,
       prsRepository,
+      userConnectionsRepository,
+      userTargetsRepository,
       queueService,
       ackService,
       vibeService,
@@ -71,8 +83,15 @@ describe('JobHandlersService', () => {
   }
 
   it('routes actionable intents to ack + create_pr', async () => {
-    const { service, triageService, complaintsRepository, queueService, messagesRepository } =
-      createService();
+    const {
+      service,
+      triageService,
+      complaintsRepository,
+      queueService,
+      messagesRepository,
+      userConnectionsRepository,
+      userTargetsRepository,
+    } = createService();
 
     triageService.classify.mockResolvedValue({
       intent: 'bug_report',
@@ -82,6 +101,14 @@ describe('JobHandlersService', () => {
     });
 
     complaintsRepository.upsertFromTriage.mockResolvedValue({ id: 'complaint-1' });
+    userConnectionsRepository.getByDiscordUserId.mockResolvedValue({
+      supabase_user_id: 'sb-1',
+      github_access_token: 'gh-token-1',
+    });
+    userTargetsRepository.getBySupabaseUserId.mockResolvedValue({
+      repo_url: 'https://github.com/acme/api.git',
+      base_branch: 'main',
+    });
 
     await service.handleClassifyIntent({
       messageId: 'msg-1',
@@ -104,7 +131,13 @@ describe('JobHandlersService', () => {
       threadId: null,
       ackText: AckService.DEFAULT_ACK,
     });
-    expect(queueService.enqueueCreatePr).toHaveBeenCalled();
+    expect(queueService.enqueueCreatePr).toHaveBeenCalledWith(
+      expect.objectContaining({
+        repoUrl: 'https://github.com/acme/api.git',
+        baseBranch: 'main',
+        githubToken: 'gh-token-1',
+      }),
+    );
   });
 
   it('does not enqueue ack/create_pr for non-actionable intents', async () => {
@@ -158,6 +191,51 @@ describe('JobHandlersService', () => {
     expect(complaintsRepository.setNeedsManual).toHaveBeenCalledWith(
       'complaint-3',
       'no pr url',
+    );
+    expect(queueService.enqueueTelegram).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'pr_failed' }),
+    );
+  });
+
+  it('marks actionable complaint manual when user target is not configured', async () => {
+    const {
+      service,
+      triageService,
+      complaintsRepository,
+      queueService,
+      userConnectionsRepository,
+      userTargetsRepository,
+    } = createService();
+
+    triageService.classify.mockResolvedValue({
+      intent: 'bug_report',
+      confidence: 0.9,
+      severity: 'high',
+      summary: 'Crash on export',
+    });
+
+    complaintsRepository.upsertFromTriage.mockResolvedValue({ id: 'complaint-5' });
+    userConnectionsRepository.getByDiscordUserId.mockResolvedValue({
+      supabase_user_id: 'sb-1',
+      github_access_token: 'gh-token-1',
+    });
+    userTargetsRepository.getBySupabaseUserId.mockResolvedValue(null);
+
+    await service.handleClassifyIntent({
+      messageId: 'msg-5',
+      platformMessageId: 'discord-5',
+      userId: 'u5',
+      username: 'alex',
+      channelId: 'c1',
+      threadId: null,
+      text: 'Export crashes on iOS',
+      timestamp: '2026-02-28T00:00:00Z',
+    });
+
+    expect(queueService.enqueueCreatePr).not.toHaveBeenCalled();
+    expect(complaintsRepository.setNeedsManual).toHaveBeenCalledWith(
+      'complaint-5',
+      expect.stringContaining('No linked GitHub account'),
     );
     expect(queueService.enqueueTelegram).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'pr_failed' }),

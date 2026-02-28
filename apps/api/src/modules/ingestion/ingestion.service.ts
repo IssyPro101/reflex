@@ -27,6 +27,7 @@ export class IngestionService {
       platformMessageId: payload.message_id,
       userId: payload.user_id,
       username: payload.username,
+      supabaseUserId: payload.supabase_user_id,
       channelId: payload.channel_id,
       threadId: payload.thread_id ?? null,
       text: payload.text,

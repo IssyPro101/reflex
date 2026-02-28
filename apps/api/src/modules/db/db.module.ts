@@ -5,6 +5,7 @@ import { MessagesRepository } from './messages.repository';
 import { ComplaintsRepository } from './complaints.repository';
 import { PrsRepository } from './prs.repository';
 import { UserConnectionsRepository } from './user-connections.repository';
+import { UserTargetsRepository } from './user-targets.repository';
 
 @Module({
   providers: [
@@ -13,6 +14,7 @@ import { UserConnectionsRepository } from './user-connections.repository';
     ComplaintsRepository,
     PrsRepository,
     UserConnectionsRepository,
+    UserTargetsRepository,
   ],
   exports: [
     DbService,
@@ -20,6 +22,7 @@ import { UserConnectionsRepository } from './user-connections.repository';
     ComplaintsRepository,
     PrsRepository,
     UserConnectionsRepository,
+    UserTargetsRepository,
   ],
 })
 export class DbModule {}
