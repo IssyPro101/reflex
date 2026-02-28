@@ -45,7 +45,6 @@ export default function Home() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [authState, setAuthState] = useState<AuthMeResponse | null>(null);
   const [repos, setRepos] = useState<Repo[]>([]);
-  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
 
   const loadBackendData = useCallback(
     async (token: string | null) => {
@@ -74,11 +73,19 @@ export default function Home() {
           }
         }
 
-        if (!me.github.connected || !me.github.target) {
-          setView("onboarding");
-        } else {
-          setView("dashboard");
-        }
+        setView((prev) => {
+          if (!me.github.connected || !me.github.target) {
+            return "onboarding";
+          }
+
+          // If user is currently in onboarding, keep them there until they
+          // explicitly complete the flow.
+          if (prev === "onboarding") {
+            return "onboarding";
+          }
+
+          return "dashboard";
+        });
       } catch {
         setView("landing");
       }
@@ -125,7 +132,6 @@ export default function Home() {
     setAccessToken(null);
     setAuthState(null);
     setRepos([]);
-    setOnboardingDismissed(false);
     setView("landing");
   }
 
@@ -142,17 +148,43 @@ export default function Home() {
   async function handleSaveTarget(repoUrl: string, baseBranch: string) {
     if (!accessToken) return;
     await api.saveTarget(accessToken, repoUrl, baseBranch);
-    await loadBackendData(accessToken);
+    setAuthState((prev) =>
+      prev
+        ? {
+            ...prev,
+            github: { ...prev.github, target: { repoUrl, baseBranch } },
+          }
+        : prev,
+    );
   }
 
   async function handleLinkDiscord(guildId: string) {
     if (!accessToken) return;
     await api.linkDiscord(accessToken, guildId);
-    await loadBackendData(accessToken);
+    setAuthState((prev) =>
+      prev
+        ? {
+            ...prev,
+            discord: { guildIds: [...prev.discord.guildIds, guildId] },
+          }
+        : prev,
+    );
+  }
+
+  async function handleLinkTelegram(chatId: string) {
+    if (!accessToken) return;
+    await api.linkTelegram(accessToken, chatId);
+    setAuthState((prev) =>
+      prev
+        ? {
+            ...prev,
+            telegram: { chatId },
+          }
+        : prev,
+    );
   }
 
   function handleOnboardingComplete() {
-    setOnboardingDismissed(true);
     setView("dashboard");
   }
 
@@ -164,7 +196,7 @@ export default function Home() {
     return <Landing onSignIn={signInWithGoogle} />;
   }
 
-  if (view === "onboarding" && !onboardingDismissed) {
+  if (view === "onboarding") {
     return (
       <Onboarding
         githubConnected={authState.github.connected}
@@ -173,8 +205,11 @@ export default function Home() {
         onConnectGithub={connectGithub}
         onSaveTarget={handleSaveTarget}
         onLinkDiscord={handleLinkDiscord}
+        onLinkTelegram={handleLinkTelegram}
         onComplete={handleOnboardingComplete}
         hasTarget={!!authState.github.target}
+        hasDiscord={authState.discord.guildIds.length > 0}
+        hasTelegram={!!authState.telegram.chatId}
       />
     );
   }

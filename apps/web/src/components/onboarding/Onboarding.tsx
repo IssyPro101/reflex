@@ -11,8 +11,9 @@ import {
   Terminal,
   Lock,
   Globe,
+  Sparkles,
 } from "lucide-react";
-import { DiscordIcon } from "@/components/icons/BrandIcons";
+import { DiscordIcon, TelegramIcon } from "@/components/icons/BrandIcons";
 import type { Repo } from "@/lib/types";
 
 type Props = {
@@ -22,8 +23,11 @@ type Props = {
   onConnectGithub: () => void;
   onSaveTarget: (repoUrl: string, baseBranch: string) => Promise<void>;
   onLinkDiscord: (guildId: string) => Promise<void>;
+  onLinkTelegram: (chatId: string) => Promise<void>;
   onComplete: () => void;
   hasTarget: boolean;
+  hasDiscord: boolean;
+  hasTelegram: boolean;
 };
 
 function toGitUrl(htmlUrl: string): string {
@@ -35,6 +39,8 @@ const stepsMeta = [
   { id: "github", label: "Connect", icon: Github },
   { id: "repo", label: "Repository", icon: GitBranch },
   { id: "discord", label: "Discord", icon: DiscordIcon },
+  { id: "telegram", label: "Telegram", icon: TelegramIcon },
+  { id: "done", label: "Done", icon: CheckCircle2 },
 ];
 
 const slideVariants = {
@@ -44,17 +50,28 @@ const slideVariants = {
 };
 
 export function Onboarding(props: Props) {
-  const initialStep = !props.githubConnected ? 0 : !props.hasTarget ? 1 : 2;
+  const initialStep = !props.githubConnected
+    ? 0
+    : !props.hasTarget
+      ? 1
+      : !props.hasDiscord
+        ? 2
+        : !props.hasTelegram
+          ? 3
+          : 4;
   const [currentStep, setCurrentStep] = useState(initialStep);
   const [targetRepoUrl, setTargetRepoUrl] = useState("");
   const [targetBranch, setTargetBranch] = useState("main");
   const [discordGuildId, setDiscordGuildId] = useState("");
+  const [telegramChatId, setTelegramChatId] = useState("");
+  const [discordLinked, setDiscordLinked] = useState(props.hasDiscord);
+  const [telegramLinked, setTelegramLinked] = useState(props.hasTelegram);
   const [saving, setSaving] = useState(false);
   const [direction, setDirection] = useState(1);
 
   const goNext = () => {
     setDirection(1);
-    setCurrentStep((s) => Math.min(s + 1, 2));
+    setCurrentStep((s) => Math.min(s + 1, 4));
   };
   const goBack = () => {
     setDirection(-1);
@@ -62,10 +79,13 @@ export function Onboarding(props: Props) {
   };
 
   async function handleSaveTarget() {
-    if (!targetRepoUrl.trim()) return;
+    const repoUrl = targetRepoUrl.trim();
+    const baseBranch = targetBranch.trim() || "main";
+    if (!repoUrl) return;
     setSaving(true);
     try {
-      await props.onSaveTarget(targetRepoUrl, targetBranch);
+      await props.onSaveTarget(repoUrl, baseBranch);
+      setTargetBranch(baseBranch);
       goNext();
     } finally {
       setSaving(false);
@@ -73,11 +93,28 @@ export function Onboarding(props: Props) {
   }
 
   async function handleLinkDiscord() {
-    if (!discordGuildId.trim()) return;
+    const guildId = discordGuildId.trim();
+    if (!guildId) return;
     setSaving(true);
     try {
-      await props.onLinkDiscord(discordGuildId);
-      props.onComplete();
+      await props.onLinkDiscord(guildId);
+      setDiscordLinked(true);
+      setDiscordGuildId("");
+      goNext();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleLinkTelegram() {
+    const chatId = telegramChatId.trim();
+    if (!chatId) return;
+    setSaving(true);
+    try {
+      await props.onLinkTelegram(chatId);
+      setTelegramLinked(true);
+      setTelegramChatId("");
+      goNext();
     } finally {
       setSaving(false);
     }
@@ -99,7 +136,6 @@ export function Onboarding(props: Props) {
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-24 w-full max-w-xl mx-auto">
-        {/* Minimal Step Indicator */}
         <div className="flex items-center gap-2 mb-12">
           {stepsMeta.map((step, i) => (
             <div key={step.id} className="flex items-center gap-2">
@@ -279,24 +315,36 @@ export function Onboarding(props: Props) {
               >
                 <div className="text-center mb-8">
                   <h2 className="text-[24px] font-medium tracking-tight mb-2">
-                    Link Discord Server
+                    Link Discord
                   </h2>
                   <p className="text-[15px] text-zinc-500">
-                    Monitor your community feedback automatically.
+                    Optional: add your server ID so CFCA can monitor community feedback.
                   </p>
                 </div>
 
-                <div className="mt-8 space-y-4">
-                  <label className="block">
-                    <span className={labelClass}>Discord Server (Guild) ID</span>
-                    <input
-                      value={discordGuildId}
-                      onChange={(e) => setDiscordGuildId(e.target.value)}
-                      placeholder="e.g. 1234567890"
-                      className={inputClass}
-                    />
-                  </label>
-                </div>
+                {discordLinked ? (
+                  <div className="rounded-2xl border border-white/[0.08] bg-[#0A0A0A] p-5">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-[13px] text-zinc-300">
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                      Discord already linked
+                    </div>
+                    <p className="text-[13px] text-zinc-500 mt-3">
+                      You can update connected servers later in Dashboard Settings.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <label className="block">
+                      <span className={labelClass}>Discord Server (Guild) ID</span>
+                      <input
+                        value={discordGuildId}
+                        onChange={(e) => setDiscordGuildId(e.target.value)}
+                        placeholder="e.g. 1234567890"
+                        className={inputClass}
+                      />
+                    </label>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between mt-10 pt-6 border-t border-white/[0.08]">
                   <button
@@ -307,20 +355,164 @@ export function Onboarding(props: Props) {
                     Back
                   </button>
                   <div className="flex items-center gap-3">
+                    {!discordLinked && (
+                      <button
+                        onClick={goNext}
+                        className="px-4 py-2 rounded-full text-[13px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
+                      >
+                        Skip
+                      </button>
+                    )}
                     <button
-                      onClick={props.onComplete}
-                      className="px-4 py-2 rounded-full text-[13px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
+                      onClick={discordLinked ? goNext : handleLinkDiscord}
+                      disabled={saving || (!discordLinked && !discordGuildId.trim())}
+                      className="group flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black font-medium text-[13px] hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
-                      Skip
-                    </button>
-                    <button
-                      onClick={handleLinkDiscord}
-                      disabled={saving || !discordGuildId.trim()}
-                      className="flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black font-medium text-[13px] hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                    >
-                      {saving ? "Linking..." : "Complete Setup"}
+                      {discordLinked ? "Continue" : saving ? "Linking..." : "Link & Continue"}
+                      <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
                     </button>
                   </div>
+                </div>
+              </motion.div>
+            )}
+
+            {currentStep === 3 && (
+              <motion.div
+                key="telegram"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full"
+              >
+                <div className="text-center mb-8">
+                  <h2 className="text-[24px] font-medium tracking-tight mb-2">
+                    Link Telegram
+                  </h2>
+                  <p className="text-[15px] text-zinc-500">
+                    Optional: add a chat ID to receive update notifications.
+                  </p>
+                </div>
+
+                {telegramLinked ? (
+                  <div className="rounded-2xl border border-white/[0.08] bg-[#0A0A0A] p-5">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-[13px] text-zinc-300">
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                      Telegram already linked
+                    </div>
+                    <p className="text-[13px] text-zinc-500 mt-3">
+                      You can update the chat ID later in Dashboard Settings.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <label className="block">
+                      <span className={labelClass}>Telegram Chat ID</span>
+                      <input
+                        value={telegramChatId}
+                        onChange={(e) => setTelegramChatId(e.target.value)}
+                        placeholder="e.g. 1234567890"
+                        className={inputClass}
+                      />
+                    </label>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between mt-10 pt-6 border-t border-white/[0.08]">
+                  <button
+                    onClick={goBack}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full text-[13px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back
+                  </button>
+                  <div className="flex items-center gap-3">
+                    {!telegramLinked && (
+                      <button
+                        onClick={goNext}
+                        className="px-4 py-2 rounded-full text-[13px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
+                      >
+                        Skip
+                      </button>
+                    )}
+                    <button
+                      onClick={telegramLinked ? goNext : handleLinkTelegram}
+                      disabled={saving || (!telegramLinked && !telegramChatId.trim())}
+                      className="group flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black font-medium text-[13px] hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                    >
+                      {telegramLinked ? "Continue" : saving ? "Linking..." : "Link & Continue"}
+                      <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {currentStep === 4 && (
+              <motion.div
+                key="done"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full"
+              >
+                <div className="text-center mb-8">
+                  <h2 className="text-[24px] font-medium tracking-tight mb-2">
+                    You're all set
+                  </h2>
+                  <p className="text-[15px] text-zinc-500">
+                    Everything is configured. You can configure any integration in Settings.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/[0.08] bg-[#0A0A0A] p-5 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[14px] font-medium text-zinc-200">Setup complete</p>
+                      <p className="text-[13px] text-zinc-500 mt-1">
+                        {props.githubLogin ? `@${props.githubLogin}` : "GitHub account"} is connected and ready.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid gap-2 text-[13px]">
+                    <div className="flex items-center justify-between rounded-lg border border-white/[0.06] px-3 py-2 bg-black/40">
+                      <span className="text-zinc-500">Discord</span>
+                      <span className={discordLinked ? "text-zinc-200" : "text-zinc-500"}>
+                        {discordLinked ? "Linked" : "Skipped"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border border-white/[0.06] px-3 py-2 bg-black/40">
+                      <span className="text-zinc-500">Telegram</span>
+                      <span className={telegramLinked ? "text-zinc-200" : "text-zinc-500"}>
+                        {telegramLinked ? "Linked" : "Skipped"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between mt-10 pt-6 border-t border-white/[0.08]">
+                  <button
+                    onClick={goBack}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full text-[13px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back
+                  </button>
+                  <button
+                    onClick={props.onComplete}
+                    className="group flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black font-medium text-[13px] hover:bg-zinc-200 transition-colors cursor-pointer"
+                  >
+                    Open Dashboard
+                    <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                  </button>
                 </div>
               </motion.div>
             )}
