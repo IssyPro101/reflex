@@ -36,7 +36,7 @@ export class DiscordService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    this.client.on('ready', () => {
+    this.client.on('clientReady', () => {
       this.enabled = true;
       this.logger.log(`Discord client ready as ${this.client.user?.tag ?? 'unknown'}`);
     });
