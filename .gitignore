@@ -1,6 +1,14 @@
 node_modules
-dist
+.pnpm-store
+
 .env
+.env.*
+
+apps/*/node_modules
+apps/*/.next
+apps/*/dist
+apps/*/coverage
+
 .vibe/trusted_folders.json
 coverage
 *.log

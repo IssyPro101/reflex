@@ -1,55 +1,53 @@
-# CFCA MVP
+# Mistral Hack Monorepo
 
-Customer Feedback -> Code Agent (CFCA) MVP implementation based on `prd.md`.
+## Workspace Layout
 
-## What this service does
+- `apps/api`: CFCA backend (NestJS + BullMQ + Postgres + GitHub OAuth bridge)
+- `apps/web`: Next.js observability frontend (Supabase Google auth + GitHub connect)
+- `packages/*`: shared packages (reserved)
 
-- Listens to Discord messages and stores them.
-- Classifies intent with Mistral.
-- Auto-acks actionable complaints.
-- Runs Mistral Vibe in programmatic mode to fix code and open PRs.
-- Runs file safety post-checks before accepting PR output.
-- Sends Telegram notifications for PR success/failure.
-- Handles GitHub `pull_request` merge webhook and follows up to Discord users.
-
-## Stack
-
-- NestJS + TypeScript
-- BullMQ + Redis
-- Postgres (Supabase compatible)
-- discord.js
-- Mistral SDK
-- Mistral Vibe CLI
-
-## Setup
-
-1. Copy `.env.example` to `.env` and fill values.
-2. Run SQL migration in `migrations/001_init_cfca.sql`.
-3. Ensure runtime has:
-   - `vibe` CLI installed and accessible
-   - `gh` CLI authenticated (`gh auth status`)
-4. Install dependencies and run:
+## Install
 
 ```bash
-npm install
-npm run start:dev
+pnpm install
 ```
 
-## Key endpoints
+## Run Locally
 
-- `GET /health`
-- `POST /ingest/discord`
-- `POST /webhooks/github`
+```bash
+pnpm dev:api
+pnpm dev:web
+```
 
-## Queue jobs
+Or run both together:
 
-- `classify_intent`
-- `reply_ack`
-- `create_pr`
-- `notify_telegram`
-- `follow_up_user`
+```bash
+pnpm dev
+```
 
-## Vibe assets
+## Environment Setup
 
-- Skill: `.vibe/skills/create-pr/SKILL.md`
-- Agent profile: `.vibe/agents/pr-agent.toml`
+### API (`apps/api/.env`)
+
+Start from [`apps/api/.env.example`](./apps/api/.env.example) and set:
+
+- `DATABASE_URL`
+- `REDIS_URL`
+- `MISTRAL_API_KEY`
+- `TARGET_REPO_URL`
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `APP_AUTH_SECRET`
+- `FRONTEND_URL=http://localhost:3001`
+- `GITHUB_OAUTH_CLIENT_ID`
+- `GITHUB_OAUTH_CLIENT_SECRET`
+
+### Web (`apps/web/.env.local`)
+
+Set:
+
+- `NEXT_PUBLIC_API_URL=http://localhost:3000`
+- `NEXT_PUBLIC_SUPABASE_URL=...`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY=...`
+
+Also enable `Google` provider in your Supabase project auth settings and add `http://localhost:3001` to allowed redirect URLs.

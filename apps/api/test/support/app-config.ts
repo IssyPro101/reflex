@@ -1,0 +1,36 @@
+import { AppConfig } from '../../src/modules/config/app-config';
+
+export function makeAppConfig(overrides: Partial<AppConfig> = {}): AppConfig {
+  return {
+    NODE_ENV: 'test',
+    PORT: 3000,
+    REDIS_URL: 'redis://localhost:6379',
+    DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/cfca',
+    DISCORD_BOT_TOKEN: undefined,
+    DISCORD_CLIENT_ID: undefined,
+    DISCORD_GUILD_ID: undefined,
+    MISTRAL_API_KEY: 'test-key',
+    MISTRAL_MODEL: 'mistral-small-latest',
+    TELEGRAM_BOT_TOKEN: undefined,
+    TELEGRAM_CHAT_ID: undefined,
+    SUPABASE_URL: 'https://example.supabase.co',
+    SUPABASE_ANON_KEY: 'supabase-anon-key',
+    APP_AUTH_SECRET: 'test-app-auth-secret',
+    GITHUB_OAUTH_STATE_TTL_SECONDS: 600,
+    FRONTEND_URL: 'http://localhost:3001',
+    GITHUB_WEBHOOK_SECRET: 'test-secret',
+    GITHUB_OAUTH_CLIENT_ID: 'github-client-id',
+    GITHUB_OAUTH_CLIENT_SECRET: 'github-client-secret',
+    GITHUB_OAUTH_SCOPE: 'repo read:user',
+    GITHUB_FALLBACK_TOKEN: undefined,
+    TARGET_REPO_URL: 'https://github.com/example/repo.git',
+    TARGET_BASE_BRANCH: 'main',
+    VIBE_BIN: 'vibe',
+    VIBE_AGENT: 'pr-agent',
+    VIBE_MAX_TURNS: 12,
+    VIBE_MAX_PRICE: 0.5,
+    WORKSPACE_ROOT: '/tmp/cfca-tests',
+    QUEUE_WORKERS_ENABLED: true,
+    ...overrides,
+  };
+}

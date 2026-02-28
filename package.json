@@ -1,46 +1,15 @@
 {
-  "name": "cfca-mvp",
+  "name": "mistral-hack-monorepo",
   "version": "0.1.0",
   "private": true,
-  "description": "Customer Feedback -> Code Agent MVP",
-  "license": "MIT",
+  "packageManager": "pnpm@9.12.3",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/main.js",
-    "start:dev": "ts-node -r tsconfig-paths/register src/main.ts",
-    "migrate": "psql \"$DATABASE_URL\" -f migrations/001_init_cfca.sql",
-    "test": "jest --runInBand",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage"
-  },
-  "dependencies": {
-    "@mistralai/mistralai": "^1.5.2",
-    "@nestjs/common": "^11.0.11",
-    "@nestjs/core": "^11.0.11",
-    "@nestjs/platform-express": "^11.0.11",
-    "bullmq": "^5.12.9",
-    "discord.js": "^14.19.2",
-    "dotenv": "^16.4.7",
-    "ioredis": "^5.4.1",
-    "node-telegram-bot-api": "^0.66.0",
-    "pg": "^8.13.1",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1",
-    "uuid": "^11.0.5",
-    "zod": "^3.24.1"
-  },
-  "devDependencies": {
-    "@types/express": "^5.0.0",
-    "@types/jest": "^29.5.14",
-    "@types/node": "^22.10.2",
-    "@types/node-telegram-bot-api": "^0.64.7",
-    "@types/pg": "^8.11.10",
-    "@types/supertest": "^6.0.2",
-    "jest": "^29.7.0",
-    "supertest": "^7.0.0",
-    "ts-jest": "^29.2.5",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.2"
+    "dev": "pnpm -r --parallel dev",
+    "dev:api": "pnpm --filter cfca-api dev",
+    "dev:web": "pnpm --filter web dev",
+    "migrate:api": "pnpm --filter cfca-api migrate",
+    "build": "pnpm -r build",
+    "test": "pnpm -r --if-present test",
+    "lint": "pnpm -r --if-present lint"
   }
 }
