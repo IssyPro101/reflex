@@ -16,6 +16,7 @@ describe('JobHandlersService', () => {
       upsertFromTriage: jest.fn(),
       setNeedsManual: jest.fn().mockResolvedValue(undefined),
       setPrCreated: jest.fn().mockResolvedValue(undefined),
+      appendProcessLog: jest.fn().mockResolvedValue(undefined),
     };
 
     const prsRepository = {
@@ -36,7 +37,6 @@ describe('JobHandlersService', () => {
 
     const queueService = {
       enqueueReplyAck: jest.fn().mockResolvedValue(undefined),
-      enqueueCreatePr: jest.fn().mockResolvedValue(undefined),
       enqueueTelegram: jest.fn().mockResolvedValue(undefined),
     };
 
@@ -81,12 +81,11 @@ describe('JobHandlersService', () => {
       userDiscordGuildsRepository,
       userTargetsRepository,
       queueService,
-      ackService,
       vibeService,
     };
   }
 
-  it('routes actionable intents to ack + create_pr', async () => {
+  it('routes actionable intents to ack + direct vibe createPr call', async () => {
     const {
       service,
       triageService,
@@ -96,6 +95,7 @@ describe('JobHandlersService', () => {
       userConnectionsRepository,
       userDiscordGuildsRepository,
       userTargetsRepository,
+      vibeService,
     } = createService();
 
     triageService.classify.mockResolvedValue({
@@ -116,6 +116,14 @@ describe('JobHandlersService', () => {
     userTargetsRepository.getBySupabaseUserId.mockResolvedValue({
       repo_url: 'https://github.com/acme/api.git',
       base_branch: 'main',
+    });
+    vibeService.createPr.mockResolvedValue({
+      status: 'success',
+      prUrl: 'https://github.com/acme/api/pull/5',
+      prNumber: 5,
+      branch: 'fix/export-crash',
+      changedFiles: ['src/export.ts'],
+      warnings: [],
     });
 
     await service.handleClassifyIntent({
@@ -140,18 +148,21 @@ describe('JobHandlersService', () => {
       threadId: null,
       ackText: AckService.DEFAULT_ACK,
     });
-    expect(queueService.enqueueCreatePr).toHaveBeenCalledWith(
-      expect.objectContaining({
-        repoUrl: 'https://github.com/acme/api.git',
-        baseBranch: 'main',
-        supabaseUserId: 'sb-1',
-        githubToken: 'gh-token-1',
-      }),
+    expect(vibeService.createPr).toHaveBeenCalledWith({
+      complaintId: 'complaint-1',
+      summary: 'Crash on export',
+      originalMessage: 'Export crashes on iOS',
+      repoUrl: 'https://github.com/acme/api.git',
+      baseBranch: 'main',
+      githubToken: 'gh-token-1',
+    });
+    expect(queueService.enqueueTelegram).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'pr_created' }),
     );
   });
 
-  it('does not enqueue ack/create_pr for non-actionable intents', async () => {
-    const { service, triageService, complaintsRepository, queueService } = createService();
+  it('does not enqueue ack or call vibe for non-actionable intents', async () => {
+    const { service, triageService, complaintsRepository, queueService, vibeService } = createService();
 
     triageService.classify.mockResolvedValue({
       intent: 'question',
@@ -175,38 +186,7 @@ describe('JobHandlersService', () => {
     });
 
     expect(queueService.enqueueReplyAck).not.toHaveBeenCalled();
-    expect(queueService.enqueueCreatePr).not.toHaveBeenCalled();
-  });
-
-  it('marks complaint manual and notifies on failed create_pr', async () => {
-    const { service, vibeService, complaintsRepository, queueService } = createService();
-
-    vibeService.createPr.mockResolvedValue({
-      status: 'failed',
-      reason: 'no pr url',
-      prUrl: null,
-      changedFiles: [],
-      warnings: [],
-    });
-
-    await service.handleCreatePr({
-      complaintId: 'complaint-3',
-      messageId: 'msg-3',
-      summary: 'Export bug',
-      originalMessage: 'Export crashes',
-      repoUrl: 'https://github.com/acme/api.git',
-      baseBranch: 'main',
-      supabaseUserId: 'sb-1',
-      username: 'alex',
-    });
-
-    expect(complaintsRepository.setNeedsManual).toHaveBeenCalledWith(
-      'complaint-3',
-      'no pr url',
-    );
-    expect(queueService.enqueueTelegram).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'pr_failed', supabaseUserId: 'sb-1' }),
-    );
+    expect(vibeService.createPr).not.toHaveBeenCalled();
   });
 
   it('marks actionable complaint manual when user target is not configured', async () => {
@@ -218,6 +198,7 @@ describe('JobHandlersService', () => {
       userConnectionsRepository,
       userDiscordGuildsRepository,
       userTargetsRepository,
+      vibeService,
     } = createService();
 
     triageService.classify.mockResolvedValue({
@@ -249,7 +230,7 @@ describe('JobHandlersService', () => {
       timestamp: '2026-02-28T00:00:00Z',
     });
 
-    expect(queueService.enqueueCreatePr).not.toHaveBeenCalled();
+    expect(vibeService.createPr).not.toHaveBeenCalled();
     expect(complaintsRepository.setNeedsManual).toHaveBeenCalledWith(
       'complaint-5',
       expect.stringContaining('No linked Discord server owner'),
@@ -259,44 +240,122 @@ describe('JobHandlersService', () => {
     );
   });
 
-  it('creates PR record and notifies on successful create_pr', async () => {
-    const { service, vibeService, complaintsRepository, prsRepository, queueService } =
-      createService();
+  it('marks complaint manual and notifies on failed vibe createPr', async () => {
+    const {
+      service,
+      triageService,
+      complaintsRepository,
+      queueService,
+      userConnectionsRepository,
+      userDiscordGuildsRepository,
+      userTargetsRepository,
+      vibeService,
+    } = createService();
 
+    triageService.classify.mockResolvedValue({
+      intent: 'bug_report',
+      confidence: 0.9,
+      severity: 'high',
+      summary: 'Export bug',
+    });
+    complaintsRepository.upsertFromTriage.mockResolvedValue({ id: 'complaint-3' });
+    userDiscordGuildsRepository.getByGuildId.mockResolvedValue({
+      supabase_user_id: 'sb-1',
+    });
+    userConnectionsRepository.getBySupabaseUserId.mockResolvedValue({
+      supabase_user_id: 'sb-1',
+      github_access_token: 'gh-token-1',
+    });
+    userTargetsRepository.getBySupabaseUserId.mockResolvedValue({
+      repo_url: 'https://github.com/acme/api.git',
+      base_branch: 'main',
+    });
     vibeService.createPr.mockResolvedValue({
-      status: 'success',
-      prUrl: 'https://github.com/acme/api/pull/5',
-      prNumber: 5,
-      branch: 'fix/export-crash',
-      changedFiles: ['src/export.ts'],
+      status: 'failed',
+      reason: 'no pr url',
+      prUrl: null,
+      changedFiles: [],
       warnings: [],
     });
 
-    await service.handleCreatePr({
-      complaintId: 'complaint-4',
-      messageId: 'msg-4',
-      summary: 'Export bug',
-      originalMessage: 'Export crashes',
-      repoUrl: 'https://github.com/acme/api.git',
-      baseBranch: 'main',
-      supabaseUserId: 'sb-1',
+    await service.handleClassifyIntent({
+      messageId: 'msg-3',
+      platformMessageId: 'discord-3',
+      userId: 'u3',
       username: 'alex',
+      guildId: 'g-3',
+      channelId: 'c1',
+      threadId: null,
+      text: 'Export crashes',
+      timestamp: '2026-02-28T00:00:00Z',
+    });
+
+    expect(complaintsRepository.setNeedsManual).toHaveBeenCalledWith(
+      'complaint-3',
+      'no pr url',
+    );
+    expect(queueService.enqueueTelegram).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'pr_failed', supabaseUserId: 'sb-1' }),
+    );
+  });
+
+  it('stores blocked PR rows when vibe blocks forbidden changes', async () => {
+    const {
+      service,
+      triageService,
+      complaintsRepository,
+      prsRepository,
+      userConnectionsRepository,
+      userDiscordGuildsRepository,
+      userTargetsRepository,
+      vibeService,
+    } = createService();
+
+    triageService.classify.mockResolvedValue({
+      intent: 'bug_report',
+      confidence: 0.9,
+      severity: 'high',
+      summary: 'Export bug',
+    });
+    complaintsRepository.upsertFromTriage.mockResolvedValue({ id: 'complaint-9' });
+    userDiscordGuildsRepository.getByGuildId.mockResolvedValue({
+      supabase_user_id: 'sb-1',
+    });
+    userConnectionsRepository.getBySupabaseUserId.mockResolvedValue({
+      supabase_user_id: 'sb-1',
+      github_access_token: 'gh-token-1',
+    });
+    userTargetsRepository.getBySupabaseUserId.mockResolvedValue({
+      repo_url: 'https://github.com/acme/api.git',
+      base_branch: 'main',
+    });
+    vibeService.createPr.mockResolvedValue({
+      status: 'blocked',
+      reason: 'Forbidden files modified',
+      prUrl: 'https://github.com/acme/api/pull/23',
+      changedFiles: ['.github/workflows/ci.yml'],
+      warnings: [],
+    });
+
+    await service.handleClassifyIntent({
+      messageId: 'msg-9',
+      platformMessageId: 'discord-9',
+      userId: 'u9',
+      username: 'alex',
+      guildId: 'g-9',
+      channelId: 'c1',
+      threadId: null,
+      text: 'Export crashes',
+      timestamp: '2026-02-28T00:00:00Z',
     });
 
     expect(prsRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        complaintId: 'complaint-4',
-        prUrl: 'https://github.com/acme/api/pull/5',
-        prNumber: 5,
+        complaintId: 'complaint-9',
         repo: 'acme/api',
+        prNumber: 23,
+        status: 'blocked',
       }),
-    );
-    expect(complaintsRepository.setPrCreated).toHaveBeenCalledWith(
-      'complaint-4',
-      'pr-row-1',
-    );
-    expect(queueService.enqueueTelegram).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'pr_created', supabaseUserId: 'sb-1' }),
     );
   });
 });

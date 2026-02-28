@@ -11,7 +11,6 @@ import { VibeModule } from './modules/vibe/vibe.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
 import { FollowUpModule } from './modules/followup/followup.module';
 import { WorkersModule } from './modules/queue/workers.module';
-import { GithubModule } from './modules/github/github.module';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ObservabilityModule } from './modules/observability/observability.module';
@@ -29,7 +28,6 @@ import { ObservabilityModule } from './modules/observability/observability.modul
     TelegramModule,
     FollowUpModule,
     WorkersModule,
-    GithubModule,
     HealthModule,
     AuthModule,
     ObservabilityModule,

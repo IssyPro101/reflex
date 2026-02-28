@@ -255,7 +255,6 @@ export class AuthService {
 
     await this.assertRepoWriteAccess(connection.github_access_token, ownerRepo);
     await this.assertBranchExists(connection.github_access_token, ownerRepo, baseBranch);
-
     const target = await this.userTargetsRepository.upsertBySupabaseUserId({
       supabaseUserId: user.id,
       repoUrl,

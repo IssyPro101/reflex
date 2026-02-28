@@ -8,9 +8,10 @@ import { AppConfig } from '../config/app-config';
 import { CommandResult, runCommand } from './command-runner';
 import { evaluateChangedFiles } from './file-safety';
 import { buildCreatePrPrompt } from './prompt-template';
-import { extractPrNumber, parseVibeOutput } from './vibe-output';
+import { extractPrNumber } from './vibe-output';
 
 interface CreatePrInput {
+  complaintId: string;
   summary: string;
   originalMessage: string;
   repoUrl: string;
@@ -77,7 +78,11 @@ export class VibeService {
 
       await this.copyVibeAssets(repoDir);
 
-      const prompt = buildCreatePrPrompt(input.summary, input.originalMessage);
+      const prompt = buildCreatePrPrompt(
+        input.complaintId,
+        input.summary,
+        input.originalMessage,
+      );
       const vibeArgs = [
         '--workdir',
         repoDir,
@@ -85,8 +90,6 @@ export class VibeService {
         this.config.VIBE_AGENT,
         '--prompt',
         prompt,
-        '--max-turns',
-        String(this.config.VIBE_MAX_TURNS),
         '--max-price',
         String(this.config.VIBE_MAX_PRICE),
         '--output',
@@ -98,6 +101,8 @@ export class VibeService {
         cwd: repoDir,
         timeoutMs: 12 * 60 * 1000,
         env: this.buildGithubEnv(input.githubToken),
+        onStdout: (chunk) => this.logger.log(chunk.trimEnd()),
+        onStderr: (chunk) => this.logger.warn(chunk.trimEnd()),
       });
 
       if (vibeResult.exitCode !== 0) {
@@ -112,9 +117,11 @@ export class VibeService {
         };
       }
 
-      const parsed = parseVibeOutput(vibeResult.stdout);
-      if (!parsed.prUrl) {
-        const reason = `Vibe output did not contain a PR URL. Output preview: ${this.getCommandOutputPreview(vibeResult, 2_000, input.githubToken)}`;
+      const branch = await this.getCurrentBranch(repoDir);
+      const prUrl = await this.findPrUrl(branch, input.repoUrl, input.githubToken);
+
+      if (!prUrl) {
+        const reason = `No open PR found for branch ${branch}. Output preview: ${this.getCommandOutputPreview(vibeResult, 2_000, input.githubToken)}`;
         this.logger.error(reason);
         return {
           status: 'failed',
@@ -130,37 +137,36 @@ export class VibeService {
 
       if (safety.forbidden.length > 0) {
         this.logger.warn(
-          `Blocking PR ${parsed.prUrl} due to forbidden file changes: ${safety.forbidden.join(', ')}`,
+          `Blocking PR ${prUrl} due to forbidden file changes: ${safety.forbidden.join(', ')}`,
         );
-        await this.closePrBestEffort(parsed.prUrl, input.githubToken);
+        await this.closePrBestEffort(prUrl, input.repoUrl, input.githubToken);
         return {
           status: 'blocked',
           reason: `Forbidden files modified: ${safety.forbidden.join(', ')}`,
-          prUrl: parsed.prUrl,
+          prUrl,
           changedFiles,
           warnings: safety.warnings,
         };
       }
 
-      const prNumber = extractPrNumber(parsed.prUrl);
+      const prNumber = extractPrNumber(prUrl);
       if (!prNumber) {
         return {
           status: 'failed',
           reason: 'Unable to parse PR number from URL',
-          prUrl: parsed.prUrl,
+          prUrl,
           changedFiles,
           warnings: safety.warnings,
         };
       }
 
-      const branch = parsed.branch ?? (await this.getCurrentBranch(repoDir));
       this.logger.log(
-        `createPr success: pr=${parsed.prUrl} branch=${branch} changedFiles=${changedFiles.length}`,
+        `createPr success: pr=${prUrl} branch=${branch} changedFiles=${changedFiles.length}`,
       );
 
       return {
         status: 'success',
-        prUrl: parsed.prUrl,
+        prUrl,
         prNumber,
         branch,
         changedFiles,
@@ -237,23 +243,82 @@ export class VibeService {
     return result.stdout.trim() || 'unknown';
   }
 
+  private async findPrUrl(
+    branch: string,
+    repoUrl: string,
+    githubToken?: string,
+  ): Promise<string | null> {
+    const parsed = this.parseOwnerRepo(repoUrl);
+    if (!parsed) {
+      this.logger.warn(`Cannot parse owner/repo from ${repoUrl}`);
+      return null;
+    }
+
+    const { owner, repo } = parsed;
+    const url = `https://api.github.com/repos/${owner}/${repo}/pulls?head=${owner}:${branch}&state=open`;
+
+    try {
+      const response = await fetch(url, {
+        headers: this.buildGithubApiHeaders(githubToken),
+      });
+
+      if (!response.ok) {
+        this.logger.warn(
+          `GitHub API returned ${response.status} when looking for PR on branch ${branch}`,
+        );
+        return null;
+      }
+
+      const pulls = (await response.json()) as Array<{ html_url: string }>;
+      return pulls.length > 0 ? pulls[0].html_url : null;
+    } catch (error) {
+      this.logger.warn(`GitHub API request failed for branch ${branch}: ${(error as Error).message}`);
+      return null;
+    }
+  }
+
   private async closePrBestEffort(
     prUrl: string,
+    repoUrl: string,
     githubToken?: string,
   ): Promise<void> {
-    const closeResult = await runCommand(
-      'gh',
-      ['pr', 'close', prUrl, '--comment', 'Auto-closed: forbidden file changes detected by CFCA guardrails.'],
-      {
-        timeoutMs: 20_000,
-        env: this.buildGithubEnv(githubToken),
-      },
-    );
+    const parsed = this.parseOwnerRepo(repoUrl);
+    const prNumber = extractPrNumber(prUrl);
+    if (!parsed || !prNumber) {
+      this.logger.warn(`Cannot close PR: unable to parse repo or PR number from ${prUrl}`);
+      return;
+    }
 
-    if (closeResult.exitCode !== 0) {
-      this.logger.warn(
-        `Failed to auto-close PR ${prUrl}: ${this.getCommandOutputPreview(closeResult, 500, githubToken)}`,
+    const { owner, repo } = parsed;
+    const headers = this.buildGithubApiHeaders(githubToken);
+
+    try {
+      const closeResponse = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`,
+        {
+          method: 'PATCH',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state: 'closed' }),
+        },
       );
+
+      if (!closeResponse.ok) {
+        this.logger.warn(`Failed to close PR ${prUrl}: GitHub API returned ${closeResponse.status}`);
+        return;
+      }
+
+      await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`,
+        {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            body: 'Auto-closed: forbidden file changes detected by CFCA guardrails.',
+          }),
+        },
+      );
+    } catch (error) {
+      this.logger.warn(`Failed to close PR ${prUrl}: ${(error as Error).message}`);
     }
   }
 
@@ -315,6 +380,24 @@ export class VibeService {
     }
 
     return `https://x-access-token:${encodeURIComponent(githubToken)}@github.com/${match[1]}.git`;
+  }
+
+  private parseOwnerRepo(repoUrl: string): { owner: string; repo: string } | null {
+    const normalized = repoUrl.replace(/\.git$/i, '');
+    const match = normalized.match(/github\.com\/([^/]+)\/([^/]+)$/i);
+    if (!match) return null;
+    return { owner: match[1], repo: match[2] };
+  }
+
+  private buildGithubApiHeaders(githubToken?: string): Record<string, string> {
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+    if (githubToken) {
+      headers.Authorization = `Bearer ${githubToken}`;
+    }
+    return headers;
   }
 
   private buildGithubEnv(githubToken?: string): NodeJS.ProcessEnv {

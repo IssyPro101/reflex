@@ -12,7 +12,6 @@ async function bootstrap() {
     rawBody: false,
   });
 
-  app.use('/webhooks/github', express.raw({ type: '*/*' }));
   app.use(express.json({ limit: '1mb' }));
 
   const config = app.get<AppConfig>(APP_CONFIG);

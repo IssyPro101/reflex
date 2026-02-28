@@ -27,7 +27,7 @@ const envSchema = z.object({
   GITHUB_OAUTH_STATE_TTL_SECONDS: z.coerce.number().int().positive().default(10 * 60),
 
   FRONTEND_URL: z.string().default('http://localhost:3001'),
-  GITHUB_WEBHOOK_SECRET: z.string().default(''),
+  API_BASE_URL: z.string().default('http://localhost:3000'),
   GITHUB_OAUTH_CLIENT_ID: z.string().default(''),
   GITHUB_OAUTH_CLIENT_SECRET: z.string().default(''),
   GITHUB_OAUTH_SCOPE: z.string().default('repo read:user'),

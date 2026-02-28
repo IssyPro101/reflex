@@ -16,7 +16,6 @@ import { extractPrNumber } from '../vibe/vibe-output';
 import { VibeService } from '../vibe/vibe.service';
 import {
   ClassifyIntentJob,
-  CreatePrJob,
   FollowUpUserJob,
   NotifyTelegramJob,
   ReplyAckJob,
@@ -87,38 +86,18 @@ export class JobHandlersService {
       return;
     }
 
-    await this.queueService.enqueueCreatePr({
+    const vibeResult = await this.vibeService.createPr({
       complaintId: complaint.id,
-      messageId: job.messageId,
       summary: triage.summary,
       originalMessage: job.text,
       repoUrl: createPrContext.repoUrl,
       baseBranch: createPrContext.baseBranch,
-      supabaseUserId: createPrContext.supabaseUserId,
-      username: job.username,
       githubToken: createPrContext.githubToken,
     });
-  }
-
-  async handleReplyAck(job: ReplyAckJob): Promise<void> {
-    await this.ackService.sendAck(job.messageId, job.channelId, job.threadId, job.ackText);
-  }
-
-  async handleCreatePr(job: CreatePrJob): Promise<void> {
-    const vibeResult = await this.vibeService.createPr({
-      summary: job.summary,
-      originalMessage: job.originalMessage,
-      repoUrl: job.repoUrl,
-      baseBranch: job.baseBranch,
-      githubToken: job.githubToken,
-    });
-    const repoIdentifier = this.resolveRepoIdentifier(
-      job.repoUrl,
-      vibeResult.prUrl,
-    );
+    const repoIdentifier = this.resolveRepoIdentifier(createPrContext.repoUrl, vibeResult.prUrl);
 
     if (vibeResult.status !== 'success') {
-      await this.complaintsRepository.setNeedsManual(job.complaintId, vibeResult.reason);
+      await this.complaintsRepository.setNeedsManual(complaint.id, vibeResult.reason);
 
       const blockedPrNumber =
         vibeResult.prUrl && vibeResult.status === 'blocked'
@@ -127,7 +106,7 @@ export class JobHandlersService {
 
       if (blockedPrNumber && vibeResult.prUrl) {
         await this.prsRepository.create({
-          complaintId: job.complaintId,
+          complaintId: complaint.id,
           repo: repoIdentifier,
           prNumber: blockedPrNumber,
           prUrl: vibeResult.prUrl,
@@ -138,9 +117,9 @@ export class JobHandlersService {
 
       await this.queueService.enqueueTelegram({
         type: 'pr_failed',
-        supabaseUserId: job.supabaseUserId,
+        supabaseUserId: createPrContext.supabaseUserId,
         payload: {
-          summary: job.summary,
+          summary: triage.summary,
           reason: vibeResult.reason,
           username: job.username,
         },
@@ -148,28 +127,10 @@ export class JobHandlersService {
 
       return;
     }
+  }
 
-    const pr = await this.prsRepository.create({
-      complaintId: job.complaintId,
-      repo: repoIdentifier,
-      prNumber: vibeResult.prNumber,
-      prUrl: vibeResult.prUrl,
-      branch: vibeResult.branch,
-      status: PR_STATUS.OPEN,
-    });
-
-    await this.complaintsRepository.setPrCreated(job.complaintId, pr.id);
-
-    await this.queueService.enqueueTelegram({
-      type: 'pr_created',
-      supabaseUserId: job.supabaseUserId,
-      payload: {
-        summary: job.summary,
-        source: 'Discord',
-        username: job.username,
-        prUrl: vibeResult.prUrl,
-      },
-    });
+  async handleReplyAck(job: ReplyAckJob): Promise<void> {
+    await this.ackService.sendAck(job.messageId, job.channelId, job.threadId, job.ackText);
   }
 
   async handleNotifyTelegram(job: NotifyTelegramJob): Promise<void> {

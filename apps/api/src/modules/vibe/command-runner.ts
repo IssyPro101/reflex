@@ -10,6 +10,8 @@ interface CommandOptions {
   cwd?: string;
   timeoutMs?: number;
   env?: NodeJS.ProcessEnv;
+  onStdout?: (chunk: string) => void;
+  onStderr?: (chunk: string) => void;
 }
 
 export function runCommand(
@@ -35,11 +37,15 @@ export function runCommand(
     }, timeoutMs);
 
     child.stdout.on('data', (chunk: Buffer) => {
-      stdout += chunk.toString('utf8');
+      const text = chunk.toString('utf8');
+      stdout += text;
+      options.onStdout?.(text);
     });
 
     child.stderr.on('data', (chunk: Buffer) => {
-      stderr += chunk.toString('utf8');
+      const text = chunk.toString('utf8');
+      stderr += text;
+      options.onStderr?.(text);
     });
 
     child.on('error', (error) => {

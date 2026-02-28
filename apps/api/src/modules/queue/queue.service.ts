@@ -4,7 +4,6 @@ import { Job, Queue } from 'bullmq';
 import { CFCA_QUEUE_NAME, JOB_NAMES } from '../../common/queue';
 import {
   ClassifyIntentJob,
-  CreatePrJob,
   FollowUpUserJob,
   NotifyTelegramJob,
   ReplyAckJob,
@@ -30,14 +29,6 @@ export class QueueService implements OnModuleDestroy {
       removeOnFail: false,
       attempts: 3,
       backoff: { type: 'exponential', delay: 1000 },
-    });
-  }
-
-  async enqueueCreatePr(data: CreatePrJob): Promise<Job<CreatePrJob>> {
-    return this.queue.add(JOB_NAMES.CREATE_PR, data, {
-      removeOnComplete: true,
-      removeOnFail: false,
-      attempts: 1,
     });
   }
 

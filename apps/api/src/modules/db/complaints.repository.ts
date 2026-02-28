@@ -64,25 +64,6 @@ export class ComplaintsRepository {
     );
   }
 
-  async appendProcessLog(id: string, entry: string): Promise<void> {
-    await this.db.query(
-      `
-      UPDATE complaints
-      SET
-        process_log = RIGHT(
-          CASE
-            WHEN COALESCE(process_log, '') = '' THEN $2
-            ELSE process_log || E'\n' || $2
-          END,
-          12000
-        ),
-        updated_at = NOW()
-      WHERE id = $1
-      `,
-      [id, entry],
-    );
-  }
-
   async setPrCreated(id: string, prId: string): Promise<void> {
     await this.db.query(
       `

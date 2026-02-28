@@ -18,18 +18,6 @@ export interface ReplyAckJob {
   ackText: string;
 }
 
-export interface CreatePrJob {
-  complaintId: string;
-  messageId: string;
-  summary: string;
-  originalMessage: string;
-  repoUrl: string;
-  baseBranch: string;
-  supabaseUserId: string;
-  username: string;
-  githubToken?: string;
-}
-
 export interface NotifyTelegramJob {
   type: 'pr_created' | 'pr_failed';
   supabaseUserId?: string;

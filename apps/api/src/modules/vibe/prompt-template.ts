@@ -1,4 +1,8 @@
-export function buildCreatePrPrompt(summary: string, originalMessage: string): string {
+export function buildCreatePrPrompt(
+  complaintId: string,
+  summary: string,
+  originalMessage: string,
+): string {
   return [
     'Fix the following bug:',
     '',
@@ -16,5 +20,8 @@ export function buildCreatePrPrompt(summary: string, originalMessage: string): s
     '',
     'After fixing, create a PR with a clear title and description',
     'that references the original user report.',
+    '',
+    'PR description must include this exact line:',
+    `CFCA_COMPLAINT_ID:${complaintId}`,
   ].join('\n');
 }

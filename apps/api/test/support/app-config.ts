@@ -17,7 +17,7 @@ export function makeAppConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     APP_AUTH_SECRET: 'test-app-auth-secret',
     GITHUB_OAUTH_STATE_TTL_SECONDS: 600,
     FRONTEND_URL: 'http://localhost:3001',
-    GITHUB_WEBHOOK_SECRET: 'test-secret',
+    API_BASE_URL: 'http://localhost:3000',
     GITHUB_OAUTH_CLIENT_ID: 'github-client-id',
     GITHUB_OAUTH_CLIENT_SECRET: 'github-client-secret',
     GITHUB_OAUTH_SCOPE: 'repo read:user',

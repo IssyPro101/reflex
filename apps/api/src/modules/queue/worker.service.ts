@@ -13,7 +13,6 @@ import { AppConfig } from '../config/app-config';
 import { JobHandlersService } from './job-handlers.service';
 import {
   ClassifyIntentJob,
-  CreatePrJob,
   FollowUpUserJob,
   NotifyTelegramJob,
   ReplyAckJob,
@@ -70,9 +69,6 @@ export class WorkerService implements OnModuleInit, OnModuleDestroy {
         return;
       case JOB_NAMES.REPLY_ACK:
         await this.handlers.handleReplyAck(job.data as ReplyAckJob);
-        return;
-      case JOB_NAMES.CREATE_PR:
-        await this.handlers.handleCreatePr(job.data as CreatePrJob);
         return;
       case JOB_NAMES.NOTIFY_TELEGRAM:
         await this.handlers.handleNotifyTelegram(job.data as NotifyTelegramJob);

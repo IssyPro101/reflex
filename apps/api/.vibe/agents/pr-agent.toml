@@ -8,8 +8,7 @@ Always create a branch, commit, push, and open a PR.
 
 [tools.bash]
 permission = "always"
-allowlist = ["git *", "gh pr create *", "gh auth status", "gh pr close *"]
-denylist = ["rm -rf", "sudo", "passwd", "mkfs"]
+denylist = ["rm -rf /", "rm -rf ~", "sudo *", "passwd *", "mkfs *", "dd if=*"]
 
 [tools.write_file]
 permission = "always"

@@ -67,5 +67,7 @@ The API expects a Supabase access token in `Authorization: Bearer <token>` for a
 - `SUPABASE_ANON_KEY`
 - `APP_AUTH_SECRET`
 - `FRONTEND_URL` (default `http://localhost:3001`)
+- `API_BASE_URL` (public API base URL used for GitHub webhook registration, e.g. `https://api.example.com`)
 - `GITHUB_OAUTH_CLIENT_ID`
 - `GITHUB_OAUTH_CLIENT_SECRET`
+- `GITHUB_WEBHOOK_SECRET`
