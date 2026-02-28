@@ -1,13 +1,14 @@
 FROM node:20-slim AS base
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip python3-venv git curl ripgrep ca-certificates \
+    git curl ripgrep ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m venv /opt/vibe-env \
-    && /opt/vibe-env/bin/pip install --no-cache-dir mistral-vibe
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
 
-ENV PATH="/opt/vibe-env/bin:$PATH"
+RUN uv tool install mistral-vibe --python 3.12
+ENV PATH="/root/.local/share/uv/tools/mistral-vibe/bin:/root/.local/bin:$PATH"
 
 RUN npm i -g pnpm@9.12.3
 
