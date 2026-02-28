@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
 
 import { InjectAppConfig } from '../config/get-config';
@@ -24,6 +24,8 @@ interface GithubStatePayload {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectAppConfig() private readonly config: AppConfig,
     private readonly userConnectionsRepository: UserConnectionsRepository,
@@ -260,6 +262,8 @@ export class AuthService {
       repoUrl,
       baseBranch,
     });
+
+    await this.ensureWebhookInstalled(connection.github_access_token, ownerRepo);
 
     return {
       repoUrl: target.repo_url,
@@ -528,6 +532,85 @@ export class AuthService {
 
     if (!response.ok) {
       throw new Error(`GitHub branch validation failed: ${response.status}`);
+    }
+  }
+
+  private async ensureWebhookInstalled(accessToken: string, ownerRepo: string): Promise<void> {
+    const webhookUrl = `${this.config.API_BASE_URL}/webhooks/github`;
+
+    try {
+      const existingHooks = await this.listRepoWebhooks(accessToken, ownerRepo);
+      const alreadyInstalled = existingHooks.some(
+        (hook: { config?: { url?: string }; active?: boolean }) =>
+          hook.config?.url === webhookUrl && hook.active,
+      );
+
+      if (alreadyInstalled) {
+        this.logger.log(`Webhook already installed on ${ownerRepo}`);
+        return;
+      }
+
+      await this.createRepoWebhook(accessToken, ownerRepo, webhookUrl);
+      this.logger.log(`Webhook installed on ${ownerRepo}`);
+    } catch (error) {
+      this.logger.warn(
+        `Failed to install webhook on ${ownerRepo}: ${error instanceof Error ? error.message : error}`,
+      );
+    }
+  }
+
+  private async listRepoWebhooks(
+    accessToken: string,
+    ownerRepo: string,
+  ): Promise<Array<{ config?: { url?: string }; active?: boolean }>> {
+    const response = await fetch(`https://api.github.com/repos/${ownerRepo}/hooks`, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${accessToken}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`GitHub list hooks failed: ${response.status}`);
+    }
+
+    return (await response.json()) as Array<{ config?: { url?: string }; active?: boolean }>;
+  }
+
+  private async createRepoWebhook(
+    accessToken: string,
+    ownerRepo: string,
+    webhookUrl: string,
+  ): Promise<void> {
+    const body: Record<string, unknown> = {
+      name: 'web',
+      active: true,
+      events: ['pull_request'],
+      config: {
+        url: webhookUrl,
+        content_type: 'json',
+        insecure_ssl: '0',
+        ...(this.config.GITHUB_WEBHOOK_SECRET
+          ? { secret: this.config.GITHUB_WEBHOOK_SECRET }
+          : {}),
+      },
+    };
+
+    const response = await fetch(`https://api.github.com/repos/${ownerRepo}/hooks`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`GitHub create hook failed: ${response.status} ${errorBody}`);
     }
   }
 

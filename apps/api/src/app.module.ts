@@ -14,6 +14,7 @@ import { WorkersModule } from './modules/queue/workers.module';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ObservabilityModule } from './modules/observability/observability.module';
+import { WebhookModule } from './modules/webhook/webhook.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ObservabilityModule } from './modules/observability/observability.modul
     HealthModule,
     AuthModule,
     ObservabilityModule,
+    WebhookModule,
   ],
 })
 export class AppModule {}

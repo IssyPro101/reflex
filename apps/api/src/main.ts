@@ -2,17 +2,15 @@ import 'dotenv/config';
 import 'reflect-metadata';
 
 import { NestFactory } from '@nestjs/core';
-import express from 'express';
 
 import { AppModule } from './app.module';
 import { APP_CONFIG, AppConfig } from './modules/config/app-config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    rawBody: false,
+    rawBody: true,
+    bodyParser: true,
   });
-
-  app.use(express.json({ limit: '1mb' }));
 
   const config = app.get<AppConfig>(APP_CONFIG);
   app.enableCors({

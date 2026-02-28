@@ -31,6 +31,7 @@ const envSchema = z.object({
   GITHUB_OAUTH_CLIENT_ID: z.string().default(''),
   GITHUB_OAUTH_CLIENT_SECRET: z.string().default(''),
   GITHUB_OAUTH_SCOPE: z.string().default('repo read:user'),
+  GITHUB_WEBHOOK_SECRET: z.string().default(''),
 
   VIBE_BIN: z.string().default('vibe'),
   VIBE_AGENT: z.string().default('pr-agent'),
