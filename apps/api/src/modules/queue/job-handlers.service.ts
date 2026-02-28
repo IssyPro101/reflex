@@ -127,6 +127,28 @@ export class JobHandlersService {
 
       return;
     }
+
+    const prRow = await this.prsRepository.create({
+      complaintId: complaint.id,
+      repo: repoIdentifier,
+      prNumber: vibeResult.prNumber,
+      prUrl: vibeResult.prUrl,
+      branch: vibeResult.branch,
+      status: PR_STATUS.OPEN,
+    });
+
+    await this.complaintsRepository.setPrCreated(complaint.id, prRow.id);
+
+    await this.queueService.enqueueTelegram({
+      type: 'pr_created',
+      supabaseUserId: createPrContext.supabaseUserId,
+      payload: {
+        summary: triage.summary,
+        source: 'Discord',
+        username: job.username,
+        prUrl: vibeResult.prUrl,
+      },
+    });
   }
 
   async handleReplyAck(job: ReplyAckJob): Promise<void> {

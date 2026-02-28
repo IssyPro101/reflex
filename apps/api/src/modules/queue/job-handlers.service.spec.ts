@@ -90,6 +90,7 @@ describe('JobHandlersService', () => {
       service,
       triageService,
       complaintsRepository,
+      prsRepository,
       queueService,
       messagesRepository,
       userConnectionsRepository,
@@ -156,9 +157,27 @@ describe('JobHandlersService', () => {
       baseBranch: 'main',
       githubToken: 'gh-token-1',
     });
-    expect(queueService.enqueueTelegram).not.toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'pr_created' }),
+    expect(prsRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        complaintId: 'complaint-1',
+        repo: 'acme/api',
+        prNumber: 5,
+        prUrl: 'https://github.com/acme/api/pull/5',
+        branch: 'fix/export-crash',
+        status: 'open',
+      }),
     );
+    expect(complaintsRepository.setPrCreated).toHaveBeenCalledWith('complaint-1', 'pr-row-1');
+    expect(queueService.enqueueTelegram).toHaveBeenCalledWith({
+      type: 'pr_created',
+      supabaseUserId: 'sb-1',
+      payload: {
+        summary: 'Crash on export',
+        source: 'Discord',
+        username: 'alex',
+        prUrl: 'https://github.com/acme/api/pull/5',
+      },
+    });
   });
 
   it('does not enqueue ack or call vibe for non-actionable intents', async () => {
