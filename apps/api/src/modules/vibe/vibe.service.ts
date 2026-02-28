@@ -102,7 +102,10 @@ export class VibeService {
       const vibeResult = await runCommand(this.config.VIBE_BIN, vibeArgs, {
         cwd: repoDir,
         timeoutMs: 12 * 60 * 1000,
-        env: this.buildGithubEnv(input.githubToken),
+        env: {
+          ...this.buildGithubEnv(input.githubToken),
+          VIBE_HOME: join(repoDir, '.vibe'),
+        },
         onStdout: (chunk) => this.logger.log(chunk.trimEnd()),
         onStderr: (chunk) => this.logger.warn(chunk.trimEnd()),
       });
