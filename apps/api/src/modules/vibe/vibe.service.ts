@@ -53,6 +53,7 @@ export class VibeService {
     const workspace = await mkdtemp(join(workspaceRoot, 'cfca-'));
     const repoDir = join(workspace, 'repo');
     const cloneUrl = this.buildCloneUrl(input.repoUrl, input.githubToken);
+    const branch = this.buildBranchName(input.complaintId);
 
     try {
       this.logger.log(`Cloning repo into workspace ${repoDir}`);
@@ -76,6 +77,7 @@ export class VibeService {
         };
       }
 
+      await this.prepareRepoForWork(repoDir, input.baseBranch, branch, input.githubToken);
       await this.copyVibeAssets(repoDir);
 
       const prompt = buildCreatePrPrompt(
@@ -117,11 +119,9 @@ export class VibeService {
         };
       }
 
-      const branch = await this.getCurrentBranch(repoDir);
-      const prUrl = await this.findPrUrl(branch, input.repoUrl, input.githubToken);
-
-      if (!prUrl) {
-        const reason = `No open PR found for branch ${branch}. Output preview: ${this.getCommandOutputPreview(vibeResult, 2_000, input.githubToken)}`;
+      const changedFiles = await this.getChangedFiles(repoDir, input.baseBranch);
+      if (changedFiles.length === 0) {
+        const reason = 'Vibe finished successfully but produced no file changes.';
         this.logger.error(reason);
         return {
           status: 'failed',
@@ -132,18 +132,70 @@ export class VibeService {
         };
       }
 
-      const changedFiles = await this.getChangedFiles(repoDir, input.baseBranch);
       const safety = evaluateChangedFiles(changedFiles);
-
       if (safety.forbidden.length > 0) {
-        this.logger.warn(
-          `Blocking PR ${prUrl} due to forbidden file changes: ${safety.forbidden.join(', ')}`,
-        );
-        await this.closePrBestEffort(prUrl, input.repoUrl, input.githubToken);
+        const reason = `Forbidden files modified: ${safety.forbidden.join(', ')}`;
+        this.logger.warn(`Blocking PR creation due to forbidden file changes: ${reason}`);
         return {
           status: 'blocked',
-          reason: `Forbidden files modified: ${safety.forbidden.join(', ')}`,
-          prUrl,
+          reason,
+          prUrl: null,
+          changedFiles,
+          warnings: safety.warnings,
+        };
+      }
+
+      const commitFailure = await this.commitIfNeeded(
+        repoDir,
+        this.buildCommitMessage(input.summary),
+        input.githubToken,
+      );
+      if (commitFailure) {
+        this.logger.error(commitFailure);
+        return {
+          status: 'failed',
+          reason: commitFailure,
+          prUrl: null,
+          changedFiles,
+          warnings: safety.warnings,
+        };
+      }
+
+      const pushResult = await runCommand(
+        'git',
+        ['-C', repoDir, 'push', '--set-upstream', 'origin', branch],
+        {
+          timeoutMs: 90_000,
+          env: this.buildGithubEnv(input.githubToken),
+        },
+      );
+      if (pushResult.exitCode !== 0) {
+        const reason = this.formatCommandFailure('git push', pushResult, input.githubToken);
+        this.logger.error(reason);
+        return {
+          status: 'failed',
+          reason,
+          prUrl: null,
+          changedFiles,
+          warnings: safety.warnings,
+        };
+      }
+
+      const prUrl = await this.createPrOnGithub({
+        branch,
+        baseBranch: input.baseBranch,
+        repoUrl: input.repoUrl,
+        title: this.buildPrTitle(input.summary),
+        body: this.buildPrBody(input.complaintId, input.summary, input.originalMessage),
+        githubToken: input.githubToken,
+      });
+      if (!prUrl) {
+        const reason = `Failed to create PR for branch ${branch}. Output preview: ${this.getCommandOutputPreview(vibeResult, 2_000, input.githubToken)}`;
+        this.logger.error(reason);
+        return {
+          status: 'failed',
+          reason,
+          prUrl: null,
           changedFiles,
           warnings: safety.warnings,
         };
@@ -186,6 +238,51 @@ export class VibeService {
     }
   }
 
+  private async prepareRepoForWork(
+    repoDir: string,
+    baseBranch: string,
+    branch: string,
+    githubToken?: string,
+  ): Promise<void> {
+    const fetchBase = await runCommand(
+      'git',
+      ['-C', repoDir, 'fetch', 'origin', baseBranch, '--depth=1'],
+      {
+        timeoutMs: 90_000,
+        env: this.buildGithubEnv(githubToken),
+      },
+    );
+    if (fetchBase.exitCode !== 0) {
+      throw new Error(
+        this.formatCommandFailure(`git fetch origin ${baseBranch}`, fetchBase, githubToken),
+      );
+    }
+
+    const checkoutBase = await runCommand(
+      'git',
+      ['-C', repoDir, 'checkout', '-B', baseBranch, `origin/${baseBranch}`],
+      {
+        timeoutMs: 20_000,
+      },
+    );
+    if (checkoutBase.exitCode !== 0) {
+      throw new Error(
+        this.formatCommandFailure(
+          `git checkout -B ${baseBranch} origin/${baseBranch}`,
+          checkoutBase,
+          githubToken,
+        ),
+      );
+    }
+
+    const checkoutBranch = await runCommand('git', ['-C', repoDir, 'checkout', '-b', branch], {
+      timeoutMs: 20_000,
+    });
+    if (checkoutBranch.exitCode !== 0) {
+      throw new Error(this.formatCommandFailure(`git checkout -b ${branch}`, checkoutBranch));
+    }
+  }
+
   private resolveWorkspaceRoot(): string {
     return this.config.WORKSPACE_ROOT || join(tmpdir(), 'cfca-workspaces');
   }
@@ -205,121 +302,199 @@ export class VibeService {
   }
 
   private async getChangedFiles(repoDir: string, baseBranch: string): Promise<string[]> {
-    const primary = await runCommand(
-      'git',
-      ['-C', repoDir, 'diff', '--name-only', `origin/${baseBranch}...HEAD`],
-      { timeoutMs: 20_000 },
-    );
+    const changedFiles = new Set<string>();
+    const commands: Array<{ step: string; args: string[] }> = [
+      {
+        step: `git diff --name-only origin/${baseBranch}...HEAD`,
+        args: ['-C', repoDir, 'diff', '--name-only', `origin/${baseBranch}...HEAD`],
+      },
+      {
+        step: 'git diff --name-only',
+        args: ['-C', repoDir, 'diff', '--name-only'],
+      },
+      {
+        step: 'git diff --name-only --cached',
+        args: ['-C', repoDir, 'diff', '--name-only', '--cached'],
+      },
+      {
+        step: 'git ls-files --others --exclude-standard',
+        args: ['-C', repoDir, 'ls-files', '--others', '--exclude-standard'],
+      },
+    ];
 
-    if (primary.exitCode !== 0) {
-      this.logger.warn(
-        `Failed to diff against origin/${baseBranch}; falling back to working-tree diff. ${this.formatCommandFailure('git diff', primary)}`,
-      );
+    for (const command of commands) {
+      const result = await runCommand('git', command.args, { timeoutMs: 20_000 });
+      if (result.exitCode !== 0) {
+        this.logger.warn(this.formatCommandFailure(command.step, result));
+        continue;
+      }
+
+      this.addFilesFromOutput(changedFiles, result.stdout);
     }
 
-    const fallback =
-      primary.exitCode === 0
-        ? primary
-        : await runCommand('git', ['-C', repoDir, 'diff', '--name-only'], {
-            timeoutMs: 20_000,
-          });
-
-    const output = fallback.stdout || '';
-    return output
-      .split('\n')
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0);
+    return Array.from(changedFiles);
   }
 
-  private async getCurrentBranch(repoDir: string): Promise<string> {
-    const result = await runCommand('git', ['-C', repoDir, 'rev-parse', '--abbrev-ref', 'HEAD'], {
+  private addFilesFromOutput(target: Set<string>, output: string): void {
+    for (const entry of output.split('\n')) {
+      const normalized = entry.trim().replace(/^\.\//, '');
+      if (normalized.length > 0) {
+        target.add(normalized);
+      }
+    }
+  }
+
+  private async commitIfNeeded(
+    repoDir: string,
+    commitMessage: string,
+    githubToken?: string,
+  ): Promise<string | null> {
+    const addResult = await runCommand('git', ['-C', repoDir, 'add', '-A'], {
+      timeoutMs: 20_000,
+    });
+    if (addResult.exitCode !== 0) {
+      return this.formatCommandFailure('git add -A', addResult, githubToken);
+    }
+
+    const stagedDiffResult = await runCommand('git', ['-C', repoDir, 'diff', '--cached', '--quiet'], {
       timeoutMs: 10_000,
     });
 
-    if (result.exitCode !== 0) {
-      return 'unknown';
+    if (stagedDiffResult.exitCode === 0) {
+      this.logger.log('No working tree changes to commit; keeping existing commit history from agent.');
+      return null;
     }
 
-    return result.stdout.trim() || 'unknown';
+    if (stagedDiffResult.exitCode !== 1) {
+      return this.formatCommandFailure('git diff --cached --quiet', stagedDiffResult, githubToken);
+    }
+
+    const commitResult = await runCommand(
+      'git',
+      [
+        '-C',
+        repoDir,
+        '-c',
+        'user.name=CFCA Bot',
+        '-c',
+        'user.email=cfca-bot@users.noreply.github.com',
+        'commit',
+        '-m',
+        commitMessage,
+      ],
+      {
+        timeoutMs: 30_000,
+      },
+    );
+    if (commitResult.exitCode !== 0) {
+      return this.formatCommandFailure('git commit', commitResult, githubToken);
+    }
+
+    return null;
   }
 
-  private async findPrUrl(
-    branch: string,
-    repoUrl: string,
-    githubToken?: string,
-  ): Promise<string | null> {
-    const parsed = this.parseOwnerRepo(repoUrl);
+  private async createPrOnGithub(input: {
+    branch: string;
+    baseBranch: string;
+    repoUrl: string;
+    title: string;
+    body: string;
+    githubToken?: string;
+  }): Promise<string | null> {
+    const parsed = this.parseOwnerRepo(input.repoUrl);
     if (!parsed) {
-      this.logger.warn(`Cannot parse owner/repo from ${repoUrl}`);
+      this.logger.warn(`Cannot parse owner/repo from ${input.repoUrl}`);
       return null;
     }
 
     const { owner, repo } = parsed;
-    const url = `https://api.github.com/repos/${owner}/${repo}/pulls?head=${owner}:${branch}&state=open`;
 
     try {
-      const response = await fetch(url, {
-        headers: this.buildGithubApiHeaders(githubToken),
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
+        method: 'POST',
+        headers: {
+          ...this.buildGithubApiHeaders(input.githubToken),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: input.title,
+          head: input.branch,
+          base: input.baseBranch,
+          body: input.body,
+        }),
       });
 
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            html_url?: string;
+            message?: string;
+          }
+        | null;
+
       if (!response.ok) {
-        this.logger.warn(
-          `GitHub API returned ${response.status} when looking for PR on branch ${branch}`,
-        );
+        const messageSuffix = payload?.message ? `: ${payload.message}` : '';
+        this.logger.warn(`GitHub PR creation failed (${response.status})${messageSuffix}`);
         return null;
       }
 
-      const pulls = (await response.json()) as Array<{ html_url: string }>;
-      return pulls.length > 0 ? pulls[0].html_url : null;
+      if (!payload?.html_url) {
+        this.logger.warn('GitHub PR creation response did not include html_url.');
+        return null;
+      }
+
+      return payload.html_url;
     } catch (error) {
-      this.logger.warn(`GitHub API request failed for branch ${branch}: ${(error as Error).message}`);
+      this.logger.warn(`GitHub PR creation request failed: ${(error as Error).message}`);
       return null;
     }
   }
 
-  private async closePrBestEffort(
-    prUrl: string,
-    repoUrl: string,
-    githubToken?: string,
-  ): Promise<void> {
-    const parsed = this.parseOwnerRepo(repoUrl);
-    const prNumber = extractPrNumber(prUrl);
-    if (!parsed || !prNumber) {
-      this.logger.warn(`Cannot close PR: unable to parse repo or PR number from ${prUrl}`);
-      return;
+  private buildBranchName(complaintId: string): string {
+    const normalizedId = complaintId.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8) || 'issue';
+    return `fix/cfca-${normalizedId}-${Date.now().toString(36)}`;
+  }
+
+  private normalizeSummary(summary: string): string {
+    return summary.replace(/\s+/g, ' ').trim();
+  }
+
+  private buildPrTitle(summary: string): string {
+    const normalized = this.normalizeSummary(summary);
+    if (!normalized) {
+      return 'CFCA automated bug fix';
     }
 
-    const { owner, repo } = parsed;
-    const headers = this.buildGithubApiHeaders(githubToken);
+    return this.limit(normalized, 120);
+  }
 
-    try {
-      const closeResponse = await fetch(
-        `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`,
-        {
-          method: 'PATCH',
-          headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ state: 'closed' }),
-        },
-      );
-
-      if (!closeResponse.ok) {
-        this.logger.warn(`Failed to close PR ${prUrl}: GitHub API returned ${closeResponse.status}`);
-        return;
-      }
-
-      await fetch(
-        `https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`,
-        {
-          method: 'POST',
-          headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            body: 'Auto-closed: forbidden file changes detected by CFCA guardrails.',
-          }),
-        },
-      );
-    } catch (error) {
-      this.logger.warn(`Failed to close PR ${prUrl}: ${(error as Error).message}`);
+  private buildCommitMessage(summary: string): string {
+    const normalized = this.normalizeSummary(summary);
+    if (!normalized) {
+      return 'fix: automated bug fix';
     }
+
+    return `fix: ${this.limit(normalized, 60)}`;
+  }
+
+  private buildPrBody(complaintId: string, summary: string, originalMessage: string): string {
+    const normalizedSummary = this.normalizeSummary(summary) || 'Automated bug fix';
+    const normalizedReport =
+      this.limit(originalMessage.trim(), 2_000) || 'No original user report provided.';
+    const quotedReport = normalizedReport
+      .split('\n')
+      .map((line) => `> ${line}`)
+      .join('\n');
+
+    return [
+      'Automated fix generated by CFCA vibe workflow.',
+      '',
+      `Summary: ${normalizedSummary}`,
+      '',
+      'Original user report:',
+      quotedReport,
+      '',
+      `CFCA_COMPLAINT_ID:${complaintId}`,
+    ].join('\n');
   }
 
   private limit(value: string, max: number): string {
@@ -384,7 +559,7 @@ export class VibeService {
 
   private parseOwnerRepo(repoUrl: string): { owner: string; repo: string } | null {
     const normalized = repoUrl.replace(/\.git$/i, '');
-    const match = normalized.match(/github\.com\/([^/]+)\/([^/]+)$/i);
+    const match = normalized.match(/github\.com[/:]([^/]+)\/([^/]+)$/i);
     if (!match) return null;
     return { owner: match[1], repo: match[2] };
   }

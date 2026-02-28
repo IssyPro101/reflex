@@ -18,10 +18,11 @@ export function buildCreatePrPrompt(
     '- keep changes small and focused',
     '- add a test if trivial to do so',
     '',
-    'After fixing, create a PR with a clear title and description',
-    'that references the original user report.',
+    'After fixing, stop when local code changes are complete.',
+    'Do not create a pull request, do not push to remote, and do not run PR helper scripts.',
+    'The backend workflow will commit, push, and open the PR automatically.',
     '',
-    'PR description must include this exact line:',
-    `CFCA_COMPLAINT_ID:${complaintId}`,
+    'Complaint ID for backend metadata:',
+    complaintId,
   ].join('\n');
 }
