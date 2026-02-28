@@ -1,0 +1,7 @@
+node_modules
+dist
+.env
+.vibe/trusted_folders.json
+coverage
+*.log
+.tmp

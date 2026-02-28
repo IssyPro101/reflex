@@ -1,0 +1,6 @@
+enabled_tools = ["bash", "read_file", "write_file", "search_replace", "grep"]
+
+[tools.bash]
+permission = "ask"
+allowlist = ["git *", "gh pr create *", "gh pr close *", "gh auth status"]
+denylist = ["rm -rf", "sudo", "passwd", "mkfs", "dd if="]
