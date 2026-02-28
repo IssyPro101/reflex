@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { cp, mkdtemp, mkdir, rm } from 'fs/promises';
+import { appendFile, cp, mkdtemp, mkdir, rm } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -299,6 +299,7 @@ export class VibeService {
         recursive: true,
         force: true,
       });
+      await appendFile(join(repoDir, '.gitignore'), '\n.vibe/\n');
     } catch (error) {
       this.logger.warn(`Skipping .vibe asset copy: ${(error as Error).message}`);
     }
@@ -383,7 +384,7 @@ export class VibeService {
         'user.email=cfca-bot@users.noreply.github.com',
         'commit',
         '-m',
-        commitMessage,
+        commitMessage, 
       ],
       {
         timeoutMs: 30_000,
