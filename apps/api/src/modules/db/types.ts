@@ -24,6 +24,7 @@ export interface ComplaintRow {
   summary: string;
   status: ComplaintStatus;
   failure_reason: string | null;
+  process_log: string | null;
   pr_id: string | null;
   created_at: string;
   updated_at: string;

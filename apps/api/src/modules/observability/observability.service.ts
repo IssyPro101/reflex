@@ -19,6 +19,7 @@ interface RecentComplaintRow extends QueryResultRow {
   severity: string;
   status: string;
   intent: string;
+  failure_reason: string | null;
   created_at: string;
   username: string;
   message_text: string;
@@ -72,6 +73,7 @@ export class ObservabilityService {
         c.severity,
         c.status,
         c.intent,
+        c.failure_reason,
         c.created_at,
         m.username,
         m.message_text,

@@ -43,6 +43,7 @@ type ObservabilityResponse = {
     severity: string;
     status: string;
     intent: string;
+    failure_reason: string | null;
     created_at: string;
     username: string;
     message_text: string;
@@ -728,6 +729,11 @@ export default function Home() {
                         <p className="mt-2 text-xs text-slate-400">
                           {item.status} • {item.severity} • {item.intent}
                         </p>
+                        {item.failure_reason ? (
+                          <p className="mt-2 whitespace-pre-wrap rounded border border-rose-900/60 bg-rose-950/40 px-2 py-1 text-xs text-rose-200">
+                            {item.failure_reason}
+                          </p>
+                        ) : null}
                         {item.pr_url ? (
                           <a
                             href={item.pr_url}
