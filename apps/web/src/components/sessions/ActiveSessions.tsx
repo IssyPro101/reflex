@@ -91,6 +91,52 @@ function looksLikeSystemPreamble(line: string): boolean {
   );
 }
 
+function reassembleFragments(
+  entries: Array<{ msg: StreamMessage | null; raw: string }>,
+): Array<{ msg: StreamMessage | null; raw: string }> {
+  const result: Array<{ msg: StreamMessage | null; raw: string }> = [];
+  let accumulator = "";
+
+  for (const entry of entries) {
+    if (entry.msg) {
+      if (accumulator) {
+        const parsed = tryParseJson(accumulator);
+        result.push({ msg: parsed, raw: accumulator });
+        accumulator = "";
+      }
+      result.push(entry);
+      continue;
+    }
+
+    const trimmed = entry.raw.trim();
+
+    if (accumulator) {
+      accumulator += "\n" + entry.raw;
+      const parsed = tryParseJson(accumulator);
+      if (parsed) {
+        result.push({ msg: parsed, raw: accumulator });
+        accumulator = "";
+      }
+    } else if (trimmed.startsWith("{")) {
+      accumulator = entry.raw;
+      const parsed = tryParseJson(accumulator);
+      if (parsed) {
+        result.push({ msg: parsed, raw: accumulator });
+        accumulator = "";
+      }
+    } else {
+      result.push(entry);
+    }
+  }
+
+  if (accumulator) {
+    const parsed = tryParseJson(accumulator);
+    result.push({ msg: parsed, raw: accumulator });
+  }
+
+  return result;
+}
+
 function extractToolArgs(argsStr: string): Record<string, unknown> | null {
   try {
     return JSON.parse(argsStr);
@@ -304,11 +350,13 @@ function SessionTerminal({ session }: { session: VibeSession }) {
         ? "bg-blue-400"
         : "bg-red-400";
 
-  const parsedMessages: Array<{ msg: StreamMessage | null; raw: string }> =
+  const rawParsed: Array<{ msg: StreamMessage | null; raw: string }> =
     session.outputLines.map((line) => ({
       msg: tryParseJson(line),
       raw: line,
     }));
+
+  const parsedMessages = reassembleFragments(rawParsed);
 
   const firstUserIndex = parsedMessages.findIndex(
     (entry) => entry.msg?.role === "user",
