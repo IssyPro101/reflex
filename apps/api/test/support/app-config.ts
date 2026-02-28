@@ -12,7 +12,6 @@ export function makeAppConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     MISTRAL_API_KEY: 'test-key',
     MISTRAL_MODEL: 'mistral-small-latest',
     TELEGRAM_BOT_TOKEN: undefined,
-    TELEGRAM_CHAT_ID: undefined,
     SUPABASE_URL: 'https://example.supabase.co',
     SUPABASE_ANON_KEY: 'supabase-anon-key',
     APP_AUTH_SECRET: 'test-app-auth-secret',

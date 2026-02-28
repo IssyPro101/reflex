@@ -5,6 +5,7 @@ import { MessagesRepository } from './messages.repository';
 import { ComplaintsRepository } from './complaints.repository';
 import { PrsRepository } from './prs.repository';
 import { UserConnectionsRepository } from './user-connections.repository';
+import { UserDiscordGuildsRepository } from './user-discord-guilds.repository';
 import { UserTargetsRepository } from './user-targets.repository';
 
 @Module({
@@ -14,6 +15,7 @@ import { UserTargetsRepository } from './user-targets.repository';
     ComplaintsRepository,
     PrsRepository,
     UserConnectionsRepository,
+    UserDiscordGuildsRepository,
     UserTargetsRepository,
   ],
   exports: [
@@ -22,6 +24,7 @@ import { UserTargetsRepository } from './user-targets.repository';
     ComplaintsRepository,
     PrsRepository,
     UserConnectionsRepository,
+    UserDiscordGuildsRepository,
     UserTargetsRepository,
   ],
 })

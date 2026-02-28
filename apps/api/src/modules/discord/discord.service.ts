@@ -77,6 +77,9 @@ export class DiscordService implements OnModuleInit, OnModuleDestroy {
     if (message.author.bot) {
       return;
     }
+    if (!message.guildId) {
+      return;
+    }
 
     const content = message.content.trim();
     if (!content) {
@@ -95,6 +98,7 @@ export class DiscordService implements OnModuleInit, OnModuleDestroy {
         message_id: message.id,
         user_id: message.author.id,
         username: message.author.username,
+        guild_id: message.guildId,
         channel_id: message.channelId,
         thread_id: threadId,
         text: content,

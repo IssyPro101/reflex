@@ -15,11 +15,16 @@ type AuthMeResponse = {
     login?: string;
     name?: string | null;
     scope?: string | null;
-    discordUserId?: string | null;
     target?: {
       repoUrl: string;
       baseBranch: string;
     } | null;
+  };
+  discord: {
+    guildIds: string[];
+  };
+  telegram: {
+    chatId?: string | null;
   };
 };
 
@@ -89,9 +94,12 @@ export default function Home() {
   const [repos, setRepos] = useState<Repo[]>([]);
   const [targetRepoUrl, setTargetRepoUrl] = useState("");
   const [targetBaseBranch, setTargetBaseBranch] = useState("main");
-  const [discordUserId, setDiscordUserId] = useState("");
+  const [discordGuildIdInput, setDiscordGuildIdInput] = useState("");
+  const [discordGuildIds, setDiscordGuildIds] = useState<string[]>([]);
+  const [telegramChatId, setTelegramChatId] = useState("");
   const [savingTarget, setSavingTarget] = useState(false);
-  const [savingDiscordLink, setSavingDiscordLink] = useState(false);
+  const [savingDiscordGuild, setSavingDiscordGuild] = useState(false);
+  const [savingTelegram, setSavingTelegram] = useState(false);
   const [error, setError] = useState<string>(supabaseConfigured ? "" : missingSupabaseEnvMessage);
 
   const userLabel = useMemo(() => {
@@ -110,12 +118,16 @@ export default function Home() {
         setAuthState({
           app: { authenticated: false },
           github: { connected: false },
+          discord: { guildIds: [] },
+          telegram: {},
         });
         setOverview(null);
         setRepos([]);
         setTargetRepoUrl("");
         setTargetBaseBranch("main");
-        setDiscordUserId("");
+        setDiscordGuildIdInput("");
+        setDiscordGuildIds([]);
+        setTelegramChatId("");
         return;
       }
 
@@ -130,9 +142,16 @@ export default function Home() {
         setAuthState({
           app: { authenticated: false },
           github: { connected: false },
+          discord: { guildIds: [] },
+          telegram: {},
         });
         setOverview(null);
         setRepos([]);
+        setTargetRepoUrl("");
+        setTargetBaseBranch("main");
+        setDiscordGuildIdInput("");
+        setDiscordGuildIds([]);
+        setTelegramChatId("");
         return;
       }
 
@@ -144,7 +163,9 @@ export default function Home() {
         setRepos([]);
         setTargetRepoUrl("");
         setTargetBaseBranch("main");
-        setDiscordUserId("");
+        setDiscordGuildIdInput("");
+        setDiscordGuildIds([]);
+        setTelegramChatId("");
         return;
       }
 
@@ -155,7 +176,8 @@ export default function Home() {
         setTargetRepoUrl("");
         setTargetBaseBranch("main");
       }
-      setDiscordUserId(meJson.github.discordUserId ?? "");
+      setDiscordGuildIds(meJson.discord.guildIds ?? []);
+      setTelegramChatId(meJson.telegram.chatId ?? "");
 
       const overviewResponse = await fetch(`${API_URL}/observability/overview?limit=15`, {
         headers: {
@@ -244,12 +266,16 @@ export default function Home() {
     setAuthState({
       app: { authenticated: false },
       github: { connected: false },
+      discord: { guildIds: [] },
+      telegram: {},
     });
     setOverview(null);
     setRepos([]);
     setTargetRepoUrl("");
     setTargetBaseBranch("main");
-    setDiscordUserId("");
+    setDiscordGuildIdInput("");
+    setDiscordGuildIds([]);
+    setTelegramChatId("");
   }
 
   async function connectGithub() {
@@ -345,52 +371,118 @@ export default function Home() {
     }
   }
 
-  async function linkDiscordUser() {
+  async function linkDiscordGuild() {
     if (!accessToken) {
       setError("Sign in first.");
       return;
     }
 
-    const normalized = discordUserId.trim();
+    const normalized = discordGuildIdInput.trim();
     if (!normalized) {
-      setError("Enter your Discord user ID.");
+      setError("Enter a Discord server (guild) ID.");
       return;
     }
 
-    setSavingDiscordLink(true);
+    setSavingDiscordGuild(true);
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/auth/discord/link`, {
+      const response = await fetch(`${API_URL}/auth/discord/guild-link`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ discordUserId: normalized }),
+        body: JSON.stringify({ guildId: normalized }),
       });
 
       if (!response.ok) {
-        setError("Failed to link Discord user ID.");
+        setError("Failed to link Discord server.");
+        return;
+      }
+
+      setDiscordGuildIdInput("");
+      await loadBackendData(accessToken);
+    } finally {
+      setSavingDiscordGuild(false);
+    }
+  }
+
+  async function unlinkDiscordGuild(guildId: string) {
+    if (!accessToken) {
+      return;
+    }
+
+    setSavingDiscordGuild(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}/auth/discord/guild-link`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ guildId }),
+      });
+
+      if (!response.ok) {
+        setError("Failed to unlink Discord server.");
         return;
       }
 
       await loadBackendData(accessToken);
     } finally {
-      setSavingDiscordLink(false);
+      setSavingDiscordGuild(false);
     }
   }
 
-  async function unlinkDiscordUser() {
+  async function linkTelegram() {
+    if (!accessToken) {
+      setError("Sign in first.");
+      return;
+    }
+
+    const normalized = telegramChatId.trim();
+    if (!normalized) {
+      setError("Enter a Telegram chat ID.");
+      return;
+    }
+
+    setSavingTelegram(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}/auth/telegram/link`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ telegramChatId: normalized }),
+      });
+
+      if (!response.ok) {
+        setError("Failed to link Telegram chat ID.");
+        return;
+      }
+
+      await loadBackendData(accessToken);
+    } finally {
+      setSavingTelegram(false);
+    }
+  }
+
+  async function unlinkTelegram() {
     if (!accessToken) {
       return;
     }
 
-    setSavingDiscordLink(true);
+    setSavingTelegram(true);
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/auth/discord/link`, {
+      const response = await fetch(`${API_URL}/auth/telegram/link`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -398,14 +490,14 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        setError("Failed to unlink Discord user ID.");
+        setError("Failed to unlink Telegram chat ID.");
         return;
       }
 
-      setDiscordUserId("");
+      setTelegramChatId("");
       await loadBackendData(accessToken);
     } finally {
-      setSavingDiscordLink(false);
+      setSavingTelegram(false);
     }
   }
 
@@ -533,30 +625,74 @@ export default function Home() {
               </button>
 
               <div className="mt-2 border-t border-slate-800 pt-3">
-                <p className="font-medium text-slate-200">Discord identity link</p>
+                <p className="font-medium text-slate-200">Discord server links</p>
                 <p className="mt-1 text-xs text-slate-400">
-                  Link your Discord user ID so inbound Discord complaints use your saved repo target.
+                  Invite the bot to your server, then link the server ID once. Messages from that
+                  server route to your saved repo target.
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <input
-                    value={discordUserId}
-                    onChange={(event) => setDiscordUserId(event.target.value)}
-                    placeholder="Discord user ID"
+                    value={discordGuildIdInput}
+                    onChange={(event) => setDiscordGuildIdInput(event.target.value)}
+                    placeholder="Discord server (guild) ID"
                     className="min-w-[220px] rounded border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
                   />
                   <button
-                    onClick={linkDiscordUser}
-                    disabled={savingDiscordLink}
+                    onClick={linkDiscordGuild}
+                    disabled={savingDiscordGuild}
                     className="rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800 disabled:opacity-60"
                   >
-                    {savingDiscordLink ? "Saving..." : "Link Discord ID"}
+                    {savingDiscordGuild ? "Saving..." : "Link server"}
+                  </button>
+                </div>
+                {discordGuildIds.length > 0 ? (
+                  <div className="mt-3 grid gap-2">
+                    {discordGuildIds.map((guildId) => (
+                      <div
+                        key={guildId}
+                        className="flex items-center justify-between gap-2 rounded border border-slate-800 px-3 py-2"
+                      >
+                        <span className="text-xs text-slate-300">{guildId}</span>
+                        <button
+                          onClick={() => unlinkDiscordGuild(guildId)}
+                          disabled={savingDiscordGuild}
+                          className="rounded border border-slate-700 px-2 py-1 text-xs hover:bg-slate-800 disabled:opacity-60"
+                        >
+                          Unlink
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-xs text-slate-400">No Discord servers linked yet.</p>
+                )}
+              </div>
+
+              <div className="mt-2 border-t border-slate-800 pt-3">
+                <p className="font-medium text-slate-200">Telegram chat link</p>
+                <p className="mt-1 text-xs text-slate-400">
+                  Optional: set your Telegram chat ID to receive PR notifications personally.
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <input
+                    value={telegramChatId}
+                    onChange={(event) => setTelegramChatId(event.target.value)}
+                    placeholder="Telegram chat ID"
+                    className="min-w-[220px] rounded border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
+                  />
+                  <button
+                    onClick={linkTelegram}
+                    disabled={savingTelegram}
+                    className="rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800 disabled:opacity-60"
+                  >
+                    {savingTelegram ? "Saving..." : "Save Telegram chat"}
                   </button>
                   <button
-                    onClick={unlinkDiscordUser}
-                    disabled={savingDiscordLink}
+                    onClick={unlinkTelegram}
+                    disabled={savingTelegram}
                     className="rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800 disabled:opacity-60"
                   >
-                    Unlink
+                    Unlink Telegram
                   </button>
                 </div>
               </div>

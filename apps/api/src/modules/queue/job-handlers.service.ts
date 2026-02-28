@@ -5,8 +5,8 @@ import { AckService } from '../ack/ack.service';
 import { ComplaintsRepository } from '../db/complaints.repository';
 import { MessagesRepository } from '../db/messages.repository';
 import { PrsRepository } from '../db/prs.repository';
-import { UserConnectionRow } from '../db/types';
 import { UserConnectionsRepository } from '../db/user-connections.repository';
+import { UserDiscordGuildsRepository } from '../db/user-discord-guilds.repository';
 import { UserTargetsRepository } from '../db/user-targets.repository';
 import { FollowUpService } from '../followup/followup.service';
 import { TelegramService } from '../telegram/telegram.service';
@@ -33,6 +33,7 @@ export class JobHandlersService {
     private readonly complaintsRepository: ComplaintsRepository,
     private readonly prsRepository: PrsRepository,
     private readonly userConnectionsRepository: UserConnectionsRepository,
+    private readonly userDiscordGuildsRepository: UserDiscordGuildsRepository,
     private readonly userTargetsRepository: UserTargetsRepository,
     private readonly queueService: QueueService,
     private readonly ackService: AckService,
@@ -67,14 +68,16 @@ export class JobHandlersService {
       ackText: AckService.DEFAULT_ACK,
     });
 
-    const createPrContext = await this.resolveCreatePrContext(job);
+    const resolvedSupabaseUserId = await this.resolveSupabaseUserId(job);
+    const createPrContext = await this.resolveCreatePrContext(job, resolvedSupabaseUserId);
     if (!createPrContext) {
       const reason =
-        'No linked GitHub account with target repo/base branch found for this user. Configure target repo in dashboard and link Discord user ID.';
+        'No linked Discord server owner with GitHub target repo/base branch found. Link server in dashboard and configure repo target.';
 
       await this.complaintsRepository.setNeedsManual(complaint.id, reason);
       await this.queueService.enqueueTelegram({
         type: 'pr_failed',
+        supabaseUserId: resolvedSupabaseUserId ?? undefined,
         payload: {
           summary: triage.summary,
           reason,
@@ -91,6 +94,7 @@ export class JobHandlersService {
       originalMessage: job.text,
       repoUrl: createPrContext.repoUrl,
       baseBranch: createPrContext.baseBranch,
+      supabaseUserId: createPrContext.supabaseUserId,
       username: job.username,
       githubToken: createPrContext.githubToken,
     });
@@ -134,6 +138,7 @@ export class JobHandlersService {
 
       await this.queueService.enqueueTelegram({
         type: 'pr_failed',
+        supabaseUserId: job.supabaseUserId,
         payload: {
           summary: job.summary,
           reason: vibeResult.reason,
@@ -157,6 +162,7 @@ export class JobHandlersService {
 
     await this.queueService.enqueueTelegram({
       type: 'pr_created',
+      supabaseUserId: job.supabaseUserId,
       payload: {
         summary: job.summary,
         source: 'Discord',
@@ -197,10 +203,16 @@ export class JobHandlersService {
 
   private async resolveCreatePrContext(
     job: ClassifyIntentJob,
-  ): Promise<{ repoUrl: string; baseBranch: string; githubToken: string } | null> {
-    const connection = await this.resolveUserConnection(job);
+    supabaseUserId: string | null,
+  ): Promise<{ repoUrl: string; baseBranch: string; githubToken: string; supabaseUserId: string } | null> {
+    if (!supabaseUserId) {
+      this.logger.warn(`No user mapping resolved for Discord guild ${job.guildId ?? 'unknown'}`);
+      return null;
+    }
+
+    const connection = await this.userConnectionsRepository.getBySupabaseUserId(supabaseUserId);
     if (!connection) {
-      this.logger.warn(`No user connection resolved for Discord user ${job.userId} (${job.username})`);
+      this.logger.warn(`No GitHub connection found for Supabase user ${supabaseUserId}`);
       return null;
     }
 
@@ -214,22 +226,19 @@ export class JobHandlersService {
       repoUrl: target.repo_url,
       baseBranch: target.base_branch,
       githubToken: connection.github_access_token,
+      supabaseUserId: connection.supabase_user_id,
     };
   }
 
-  private async resolveUserConnection(job: ClassifyIntentJob): Promise<UserConnectionRow | null> {
+  private async resolveSupabaseUserId(job: ClassifyIntentJob): Promise<string | null> {
     if (job.supabaseUserId) {
-      const bySupabase = await this.userConnectionsRepository.getBySupabaseUserId(job.supabaseUserId);
-      if (bySupabase) {
-        return bySupabase;
-      }
+      return job.supabaseUserId;
+    }
+    if (!job.guildId) {
+      return null;
     }
 
-    const byDiscordUserId = await this.userConnectionsRepository.getByDiscordUserId(job.userId);
-    if (byDiscordUserId) {
-      return byDiscordUserId;
-    }
-
-    return this.userConnectionsRepository.getByGithubLogin(job.username);
+    const guildLink = await this.userDiscordGuildsRepository.getByGuildId(job.guildId);
+    return guildLink?.supabase_user_id ?? null;
   }
 }

@@ -46,8 +46,11 @@ pnpm test
 - `GET /auth/github/repos`
 - `GET /auth/github/target`
 - `PUT /auth/github/target`
-- `POST /auth/discord/link`
-- `DELETE /auth/discord/link`
+- `GET /auth/discord/guild-links`
+- `POST /auth/discord/guild-link`
+- `DELETE /auth/discord/guild-link`
+- `POST /auth/telegram/link`
+- `DELETE /auth/telegram/link`
 - `POST /auth/github/disconnect`
 - `GET /observability/overview`
 

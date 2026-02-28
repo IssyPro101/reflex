@@ -3,6 +3,7 @@ export interface ClassifyIntentJob {
   platformMessageId: string;
   userId: string;
   username: string;
+  guildId: string | null;
   supabaseUserId?: string;
   channelId: string;
   threadId: string | null;
@@ -24,12 +25,14 @@ export interface CreatePrJob {
   originalMessage: string;
   repoUrl: string;
   baseBranch: string;
+  supabaseUserId: string;
   username: string;
   githubToken?: string;
 }
 
 export interface NotifyTelegramJob {
   type: 'pr_created' | 'pr_failed';
+  supabaseUserId?: string;
   payload: Record<string, string | number | null>;
 }
 

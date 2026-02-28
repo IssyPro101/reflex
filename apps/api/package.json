@@ -9,7 +9,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
     "start:dev": "ts-node -r tsconfig-paths/register src/main.ts",
-    "migrate": "sh -c 'for f in migrations/*.sql; do psql \"$DATABASE_URL\" -f \"$f\"; done'",
+    "migrate": "sh -c 'export $(grep -v \"^#\" .env | xargs); for f in migrations/*.sql; do psql \"$DATABASE_URL\" -f \"$f\"; done'",
     "lint": "tsc -p tsconfig.build.json --noEmit",
     "test": "jest --runInBand --watchman=false",
     "test:watch": "jest --watch",

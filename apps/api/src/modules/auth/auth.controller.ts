@@ -14,7 +14,11 @@ import {
 import { Response } from 'express';
 
 import { AuthService } from './auth.service';
-import { discordLinkSchema, githubTargetSchema } from './auth.types';
+import {
+  discordGuildLinkSchema,
+  githubTargetSchema,
+  telegramLinkSchema,
+} from './auth.types';
 
 @Controller('auth')
 export class AuthController {
@@ -79,23 +83,53 @@ export class AuthController {
     return { target };
   }
 
-  @Post('discord/link')
+  @Get('discord/guild-links')
+  async listDiscordGuildLinks(
+    @Headers('authorization') authorizationHeader: string | undefined,
+  ): Promise<{ guildIds: string[] }> {
+    const guildIds = await this.authService.listDiscordGuildLinks(authorizationHeader);
+    return { guildIds };
+  }
+
+  @Post('discord/guild-link')
   @HttpCode(HttpStatus.OK)
-  async linkDiscordUser(
+  async linkDiscordGuild(
     @Headers('authorization') authorizationHeader: string | undefined,
     @Body() body: unknown,
   ): Promise<{ linked: boolean }> {
-    const input = discordLinkSchema.parse(body);
-    await this.authService.linkDiscordUser(authorizationHeader, input.discordUserId);
+    const input = discordGuildLinkSchema.parse(body);
+    await this.authService.linkDiscordGuild(authorizationHeader, input.guildId);
     return { linked: true };
   }
 
-  @Delete('discord/link')
+  @Delete('discord/guild-link')
   @HttpCode(HttpStatus.OK)
-  async unlinkDiscordUser(
+  async unlinkDiscordGuild(
+    @Headers('authorization') authorizationHeader: string | undefined,
+    @Body() body: unknown,
+  ): Promise<{ unlinked: boolean }> {
+    const input = discordGuildLinkSchema.parse(body);
+    await this.authService.unlinkDiscordGuild(authorizationHeader, input.guildId);
+    return { unlinked: true };
+  }
+
+  @Post('telegram/link')
+  @HttpCode(HttpStatus.OK)
+  async linkTelegram(
+    @Headers('authorization') authorizationHeader: string | undefined,
+    @Body() body: unknown,
+  ): Promise<{ linked: boolean }> {
+    const input = telegramLinkSchema.parse(body);
+    await this.authService.linkTelegram(authorizationHeader, input.telegramChatId);
+    return { linked: true };
+  }
+
+  @Delete('telegram/link')
+  @HttpCode(HttpStatus.OK)
+  async unlinkTelegram(
     @Headers('authorization') authorizationHeader: string | undefined,
   ): Promise<{ unlinked: boolean }> {
-    await this.authService.unlinkDiscordUser(authorizationHeader);
+    await this.authService.unlinkTelegram(authorizationHeader);
     return { unlinked: true };
   }
 

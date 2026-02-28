@@ -24,8 +24,10 @@ describe('JobHandlersService', () => {
 
     const userConnectionsRepository = {
       getBySupabaseUserId: jest.fn(),
-      getByDiscordUserId: jest.fn(),
-      getByGithubLogin: jest.fn(),
+    };
+
+    const userDiscordGuildsRepository = {
+      getByGuildId: jest.fn(),
     };
 
     const userTargetsRepository = {
@@ -60,6 +62,7 @@ describe('JobHandlersService', () => {
       complaintsRepository as any,
       prsRepository as any,
       userConnectionsRepository as any,
+      userDiscordGuildsRepository as any,
       userTargetsRepository as any,
       queueService as any,
       ackService as any,
@@ -75,6 +78,7 @@ describe('JobHandlersService', () => {
       complaintsRepository,
       prsRepository,
       userConnectionsRepository,
+      userDiscordGuildsRepository,
       userTargetsRepository,
       queueService,
       ackService,
@@ -90,6 +94,7 @@ describe('JobHandlersService', () => {
       queueService,
       messagesRepository,
       userConnectionsRepository,
+      userDiscordGuildsRepository,
       userTargetsRepository,
     } = createService();
 
@@ -101,7 +106,10 @@ describe('JobHandlersService', () => {
     });
 
     complaintsRepository.upsertFromTriage.mockResolvedValue({ id: 'complaint-1' });
-    userConnectionsRepository.getByDiscordUserId.mockResolvedValue({
+    userDiscordGuildsRepository.getByGuildId.mockResolvedValue({
+      supabase_user_id: 'sb-1',
+    });
+    userConnectionsRepository.getBySupabaseUserId.mockResolvedValue({
       supabase_user_id: 'sb-1',
       github_access_token: 'gh-token-1',
     });
@@ -115,6 +123,7 @@ describe('JobHandlersService', () => {
       platformMessageId: 'discord-1',
       userId: 'u1',
       username: 'alex',
+      guildId: 'g-1',
       channelId: 'c1',
       threadId: null,
       text: 'Export crashes on iOS',
@@ -135,6 +144,7 @@ describe('JobHandlersService', () => {
       expect.objectContaining({
         repoUrl: 'https://github.com/acme/api.git',
         baseBranch: 'main',
+        supabaseUserId: 'sb-1',
         githubToken: 'gh-token-1',
       }),
     );
@@ -157,6 +167,7 @@ describe('JobHandlersService', () => {
       platformMessageId: 'discord-2',
       userId: 'u2',
       username: 'sam',
+      guildId: 'g-2',
       channelId: 'c1',
       threadId: null,
       text: 'How do I export?',
@@ -185,6 +196,7 @@ describe('JobHandlersService', () => {
       originalMessage: 'Export crashes',
       repoUrl: 'https://github.com/acme/api.git',
       baseBranch: 'main',
+      supabaseUserId: 'sb-1',
       username: 'alex',
     });
 
@@ -193,7 +205,7 @@ describe('JobHandlersService', () => {
       'no pr url',
     );
     expect(queueService.enqueueTelegram).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'pr_failed' }),
+      expect.objectContaining({ type: 'pr_failed', supabaseUserId: 'sb-1' }),
     );
   });
 
@@ -204,6 +216,7 @@ describe('JobHandlersService', () => {
       complaintsRepository,
       queueService,
       userConnectionsRepository,
+      userDiscordGuildsRepository,
       userTargetsRepository,
     } = createService();
 
@@ -215,7 +228,10 @@ describe('JobHandlersService', () => {
     });
 
     complaintsRepository.upsertFromTriage.mockResolvedValue({ id: 'complaint-5' });
-    userConnectionsRepository.getByDiscordUserId.mockResolvedValue({
+    userDiscordGuildsRepository.getByGuildId.mockResolvedValue({
+      supabase_user_id: 'sb-1',
+    });
+    userConnectionsRepository.getBySupabaseUserId.mockResolvedValue({
       supabase_user_id: 'sb-1',
       github_access_token: 'gh-token-1',
     });
@@ -226,6 +242,7 @@ describe('JobHandlersService', () => {
       platformMessageId: 'discord-5',
       userId: 'u5',
       username: 'alex',
+      guildId: 'g-5',
       channelId: 'c1',
       threadId: null,
       text: 'Export crashes on iOS',
@@ -235,10 +252,10 @@ describe('JobHandlersService', () => {
     expect(queueService.enqueueCreatePr).not.toHaveBeenCalled();
     expect(complaintsRepository.setNeedsManual).toHaveBeenCalledWith(
       'complaint-5',
-      expect.stringContaining('No linked GitHub account'),
+      expect.stringContaining('No linked Discord server owner'),
     );
     expect(queueService.enqueueTelegram).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'pr_failed' }),
+      expect.objectContaining({ type: 'pr_failed', supabaseUserId: 'sb-1' }),
     );
   });
 
@@ -262,6 +279,7 @@ describe('JobHandlersService', () => {
       originalMessage: 'Export crashes',
       repoUrl: 'https://github.com/acme/api.git',
       baseBranch: 'main',
+      supabaseUserId: 'sb-1',
       username: 'alex',
     });
 
@@ -278,7 +296,7 @@ describe('JobHandlersService', () => {
       'pr-row-1',
     );
     expect(queueService.enqueueTelegram).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'pr_created' }),
+      expect.objectContaining({ type: 'pr_created', supabaseUserId: 'sb-1' }),
     );
   });
 });

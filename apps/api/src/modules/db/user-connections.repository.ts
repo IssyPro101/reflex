@@ -65,39 +65,16 @@ export class UserConnectionsRepository {
     return result.rows[0] ?? null;
   }
 
-  async getByGithubLogin(githubLogin: string): Promise<UserConnectionRow | null> {
-    const result = await this.db.query<UserConnectionRow>(
-      `SELECT * FROM user_connections WHERE LOWER(github_login) = LOWER($1) LIMIT 1`,
-      [githubLogin],
-    );
-
-    return result.rows[0] ?? null;
-  }
-
-  async getByDiscordUserId(discordUserId: string): Promise<UserConnectionRow | null> {
-    const result = await this.db.query<UserConnectionRow>(
-      `SELECT * FROM user_connections WHERE session_id = $1 LIMIT 1`,
-      [discordUserId],
-    );
-
-    return result.rows[0] ?? null;
-  }
-
-  async setDiscordUserId(supabaseUserId: string, discordUserId: string): Promise<void> {
+  async setTelegramChatId(supabaseUserId: string, telegramChatId: string): Promise<void> {
     await this.db.query(
-      `UPDATE user_connections SET session_id = NULL, updated_at = NOW() WHERE session_id = $2 AND supabase_user_id <> $1`,
-      [supabaseUserId, discordUserId],
-    );
-
-    await this.db.query(
-      `UPDATE user_connections SET session_id = $2, updated_at = NOW() WHERE supabase_user_id = $1`,
-      [supabaseUserId, discordUserId],
+      `UPDATE user_connections SET telegram_chat_id = $2, updated_at = NOW() WHERE supabase_user_id = $1`,
+      [supabaseUserId, telegramChatId],
     );
   }
 
-  async clearDiscordUserId(supabaseUserId: string): Promise<void> {
+  async clearTelegramChatId(supabaseUserId: string): Promise<void> {
     await this.db.query(
-      `UPDATE user_connections SET session_id = NULL, updated_at = NOW() WHERE supabase_user_id = $1`,
+      `UPDATE user_connections SET telegram_chat_id = NULL, updated_at = NOW() WHERE supabase_user_id = $1`,
       [supabaseUserId],
     );
   }

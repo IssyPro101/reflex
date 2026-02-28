@@ -3,38 +3,51 @@ import TelegramBot from 'node-telegram-bot-api';
 
 import { InjectAppConfig } from '../config/get-config';
 import { AppConfig } from '../config/app-config';
+import { UserConnectionsRepository } from '../db/user-connections.repository';
 import { NotifyTelegramJob } from '../queue/jobs';
 
 @Injectable()
 export class TelegramService {
   private readonly logger = new Logger(TelegramService.name);
   private readonly bot: TelegramBot | null;
-  private readonly chatId: string | null;
 
-  constructor(@InjectAppConfig() config: AppConfig) {
-    if (!config.TELEGRAM_BOT_TOKEN || !config.TELEGRAM_CHAT_ID) {
+  constructor(
+    @InjectAppConfig() config: AppConfig,
+    private readonly userConnectionsRepository: UserConnectionsRepository,
+  ) {
+    if (!config.TELEGRAM_BOT_TOKEN) {
       this.bot = null;
-      this.chatId = null;
-      this.logger.warn('Telegram notifier disabled (missing token or chat id)');
+      this.logger.warn('Telegram notifier disabled (missing bot token)');
       return;
     }
 
     this.bot = new TelegramBot(config.TELEGRAM_BOT_TOKEN);
-    this.chatId = config.TELEGRAM_CHAT_ID;
   }
 
   isReady(): boolean {
-    return Boolean(this.bot && this.chatId);
+    return Boolean(this.bot);
   }
 
   async notify(job: NotifyTelegramJob): Promise<void> {
-    if (!this.bot || !this.chatId) {
+    if (!this.bot) {
       this.logger.warn('Skipping Telegram notification because notifier is disabled');
+      return;
+    }
+    if (!job.supabaseUserId) {
+      this.logger.warn('Skipping Telegram notification: missing supabaseUserId');
+      return;
+    }
+
+    const connection = await this.userConnectionsRepository.getBySupabaseUserId(job.supabaseUserId);
+    if (!connection?.telegram_chat_id) {
+      this.logger.warn(
+        `Skipping Telegram notification: missing telegram chat id for user ${job.supabaseUserId}`,
+      );
       return;
     }
 
     const message = this.formatMessage(job);
-    await this.bot.sendMessage(this.chatId, message);
+    await this.bot.sendMessage(connection.telegram_chat_id, message);
   }
 
   private formatMessage(job: NotifyTelegramJob): string {

@@ -5,6 +5,7 @@ export const discordIngestSchema = z.object({
   message_id: z.string().min(1),
   user_id: z.string().min(1),
   username: z.string().min(1),
+  guild_id: z.string().nullable().optional(),
   supabase_user_id: z.string().min(1).optional(),
   channel_id: z.string().min(1),
   thread_id: z.string().nullable().optional(),

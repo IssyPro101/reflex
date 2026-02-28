@@ -20,7 +20,6 @@ const envSchema = z.object({
   MISTRAL_MODEL: z.string().default('mistral-small-latest'),
 
   TELEGRAM_BOT_TOKEN: z.string().optional(),
-  TELEGRAM_CHAT_ID: z.string().optional(),
 
   SUPABASE_URL: z.string().default(''),
   SUPABASE_ANON_KEY: z.string().default(''),

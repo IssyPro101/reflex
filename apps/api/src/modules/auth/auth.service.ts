@@ -4,6 +4,7 @@ import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
 import { InjectAppConfig } from '../config/get-config';
 import { AppConfig } from '../config/app-config';
 import { UserConnectionsRepository } from '../db/user-connections.repository';
+import { UserDiscordGuildsRepository } from '../db/user-discord-guilds.repository';
 import { UserTargetsRepository } from '../db/user-targets.repository';
 import {
   GithubTargetInput,
@@ -26,6 +27,7 @@ export class AuthService {
   constructor(
     @InjectAppConfig() private readonly config: AppConfig,
     private readonly userConnectionsRepository: UserConnectionsRepository,
+    private readonly userDiscordGuildsRepository: UserDiscordGuildsRepository,
     private readonly userTargetsRepository: UserTargetsRepository,
   ) {}
 
@@ -114,8 +116,13 @@ export class AuthService {
       login?: string;
       name?: string | null;
       scope?: string | null;
-      discordUserId?: string | null;
       target?: GithubTargetResponse | null;
+    };
+    discord: {
+      guildIds: string[];
+    };
+    telegram: {
+      chatId?: string | null;
     };
   }> {
     const user = await this.getSupabaseUser(authorizationHeader);
@@ -123,10 +130,14 @@ export class AuthService {
       return {
         app: { authenticated: false },
         github: { connected: false },
+        discord: { guildIds: [] },
+        telegram: {},
       };
     }
 
     const connection = await this.userConnectionsRepository.getBySupabaseUserId(user.id);
+    const guilds = await this.userDiscordGuildsRepository.listBySupabaseUserId(user.id);
+    const guildIds = guilds.map((item) => item.guild_id);
 
     if (!connection) {
       return {
@@ -138,6 +149,8 @@ export class AuthService {
         github: {
           connected: false,
         },
+        discord: { guildIds },
+        telegram: {},
       };
     }
 
@@ -154,13 +167,18 @@ export class AuthService {
         login: connection.github_login,
         name: connection.github_name,
         scope: connection.github_scope,
-        discordUserId: connection.session_id,
         target: target
           ? {
               repoUrl: target.repo_url,
               baseBranch: target.base_branch,
             }
           : null,
+      },
+      discord: {
+        guildIds,
+      },
+      telegram: {
+        chatId: connection.telegram_chat_id,
       },
     };
   }
@@ -250,28 +268,59 @@ export class AuthService {
     };
   }
 
-  async linkDiscordUser(
+  async listDiscordGuildLinks(authorizationHeader: string | undefined): Promise<string[]> {
+    const user = await this.requireSupabaseUser(authorizationHeader);
+    const links = await this.userDiscordGuildsRepository.listBySupabaseUserId(user.id);
+    return links.map((item) => item.guild_id);
+  }
+
+  async linkDiscordGuild(
     authorizationHeader: string | undefined,
-    discordUserId: string,
+    guildId: string,
+  ): Promise<void> {
+    const user = await this.requireSupabaseUser(authorizationHeader);
+    const normalized = guildId.trim();
+    if (!normalized) {
+      throw new BadRequestException('guildId is required');
+    }
+
+    await this.userDiscordGuildsRepository.linkGuildToSupabaseUserId(user.id, normalized);
+  }
+
+  async unlinkDiscordGuild(
+    authorizationHeader: string | undefined,
+    guildId: string,
+  ): Promise<void> {
+    const user = await this.requireSupabaseUser(authorizationHeader);
+    const normalized = guildId.trim();
+    if (!normalized) {
+      throw new BadRequestException('guildId is required');
+    }
+
+    await this.userDiscordGuildsRepository.unlinkGuildFromSupabaseUserId(user.id, normalized);
+  }
+
+  async linkTelegram(
+    authorizationHeader: string | undefined,
+    telegramChatId: string,
   ): Promise<void> {
     const user = await this.requireSupabaseUser(authorizationHeader);
     const connection = await this.userConnectionsRepository.getBySupabaseUserId(user.id);
-
     if (!connection) {
       throw new UnauthorizedException('GitHub is not connected');
     }
 
-    const normalized = discordUserId.trim();
+    const normalized = telegramChatId.trim();
     if (!normalized) {
-      throw new BadRequestException('discordUserId is required');
+      throw new BadRequestException('telegramChatId is required');
     }
 
-    await this.userConnectionsRepository.setDiscordUserId(user.id, normalized);
+    await this.userConnectionsRepository.setTelegramChatId(user.id, normalized);
   }
 
-  async unlinkDiscordUser(authorizationHeader: string | undefined): Promise<void> {
+  async unlinkTelegram(authorizationHeader: string | undefined): Promise<void> {
     const user = await this.requireSupabaseUser(authorizationHeader);
-    await this.userConnectionsRepository.clearDiscordUserId(user.id);
+    await this.userConnectionsRepository.clearTelegramChatId(user.id);
   }
 
   async getGithubContextFromAuthHeader(

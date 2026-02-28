@@ -45,11 +45,20 @@ export interface UserConnectionRow {
   id: string;
   supabase_user_id: string;
   session_id: string | null;
+  telegram_chat_id: string | null;
   github_user_id: string;
   github_login: string;
   github_name: string | null;
   github_access_token: string;
   github_scope: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserDiscordGuildRow {
+  id: string;
+  supabase_user_id: string;
+  guild_id: string;
   created_at: string;
   updated_at: string;
 }

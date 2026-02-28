@@ -44,8 +44,14 @@ export const githubTargetSchema = z.object({
 
 export type GithubTargetInput = z.infer<typeof githubTargetSchema>;
 
-export const discordLinkSchema = z.object({
-  discordUserId: z.string().min(1),
+export const discordGuildLinkSchema = z.object({
+  guildId: z.string().regex(/^[0-9]+$/),
 });
 
-export type DiscordLinkInput = z.infer<typeof discordLinkSchema>;
+export type DiscordGuildLinkInput = z.infer<typeof discordGuildLinkSchema>;
+
+export const telegramLinkSchema = z.object({
+  telegramChatId: z.string().min(1),
+});
+
+export type TelegramLinkInput = z.infer<typeof telegramLinkSchema>;
