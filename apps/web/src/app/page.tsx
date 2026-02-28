@@ -1,221 +1,93 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-
+import { motion } from "framer-motion";
+import { Terminal } from "lucide-react";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
+import { api } from "@/lib/api";
+import type { AuthMeResponse, Repo } from "@/lib/types";
+import { Landing } from "@/components/landing/Landing";
+import { Onboarding } from "@/components/onboarding/Onboarding";
+import { Dashboard } from "@/components/dashboard/Dashboard";
 
-type AuthMeResponse = {
-  app: {
-    authenticated: boolean;
-    userId?: string;
-    email?: string | null;
-  };
-  github: {
-    connected: boolean;
-    login?: string;
-    name?: string | null;
-    scope?: string | null;
-    target?: {
-      repoUrl: string;
-      baseBranch: string;
-    } | null;
-  };
-  discord: {
-    guildIds: string[];
-  };
-  telegram: {
-    chatId?: string | null;
-  };
-};
+type AppView = "loading" | "landing" | "onboarding" | "dashboard";
 
-type ObservabilityResponse = {
-  counts: {
-    messagesTotal: number;
-    complaintsTotal: number;
-    complaintsPending: number;
-    complaintsManual: number;
-    prsOpen: number;
-    prsMerged: number;
-  };
-  recentComplaints: Array<{
-    id: string;
-    summary: string;
-    severity: string;
-    status: string;
-    intent: string;
-    failure_reason: string | null;
-    created_at: string;
-    username: string;
-    message_text: string;
-    pr_url: string | null;
-    pr_number: number | null;
-    pr_status: string | null;
-  }>;
-  recentPrs: Array<{
-    id: string;
-    repo: string;
-    pr_number: number;
-    pr_url: string;
-    status: string;
-    created_at: string;
-    summary: string | null;
-    severity: string | null;
-  }>;
-  generatedAt: string;
-};
-
-type Repo = {
-  id: number;
-  full_name: string;
-  html_url: string;
-  default_branch: string;
-  private: boolean;
-};
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
-
-function toGitUrl(htmlUrl: string): string {
-  const trimmed = htmlUrl.replace(/\/+$/, "");
-  return trimmed.endsWith(".git") ? trimmed : `${trimmed}.git`;
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="flex flex-col items-center gap-6"
+      >
+        <div className="w-12 h-12 rounded-xl border border-white/[0.08] bg-[#0A0A0A] flex items-center justify-center shadow-2xl">
+          <Terminal className="w-5 h-5 text-white" />
+        </div>
+        <div className="w-40 h-[3px] rounded-full bg-white/[0.04] overflow-hidden">
+          <div className="h-full w-1/3 bg-white/[0.8] rounded-full animate-loading-bar" />
+        </div>
+      </motion.div>
+    </div>
+  );
 }
 
 export default function Home() {
-  const missingSupabaseEnvMessage =
-    "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.";
   const supabaseConfigured = isSupabaseConfigured();
   const supabase = useMemo(
     () => (supabaseConfigured ? getSupabaseClient() : null),
     [supabaseConfigured],
   );
 
-  const [loading, setLoading] = useState(supabaseConfigured);
+  const [view, setView] = useState<AppView>(
+    supabaseConfigured ? "loading" : "landing",
+  );
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [authState, setAuthState] = useState<AuthMeResponse | null>(null);
-  const [overview, setOverview] = useState<ObservabilityResponse | null>(null);
   const [repos, setRepos] = useState<Repo[]>([]);
-  const [targetRepoUrl, setTargetRepoUrl] = useState("");
-  const [targetBaseBranch, setTargetBaseBranch] = useState("main");
-  const [discordGuildIdInput, setDiscordGuildIdInput] = useState("");
-  const [discordGuildIds, setDiscordGuildIds] = useState<string[]>([]);
-  const [telegramChatId, setTelegramChatId] = useState("");
-  const [savingTarget, setSavingTarget] = useState(false);
-  const [savingDiscordGuild, setSavingDiscordGuild] = useState(false);
-  const [savingTelegram, setSavingTelegram] = useState(false);
-  const [error, setError] = useState<string>(supabaseConfigured ? "" : missingSupabaseEnvMessage);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
 
-  const userLabel = useMemo(() => {
-    const email = authState?.app.email;
-    if (email) {
-      return email;
-    }
-    if (authState?.github.login) {
-      return `@${authState.github.login}`;
-    }
-    return "Unknown";
-  }, [authState]);
-
-  const loadBackendData = useCallback(async (token: string | null) => {
+  const loadBackendData = useCallback(
+    async (token: string | null) => {
       if (!token) {
-        setAuthState({
-          app: { authenticated: false },
-          github: { connected: false },
-          discord: { guildIds: [] },
-          telegram: {},
-        });
-        setOverview(null);
+        setAuthState(null);
         setRepos([]);
-        setTargetRepoUrl("");
-        setTargetBaseBranch("main");
-        setDiscordGuildIdInput("");
-        setDiscordGuildIds([]);
-        setTelegramChatId("");
+        setView("landing");
         return;
       }
 
-    try {
-      const meResponse = await fetch(`${API_URL}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      try {
+        const me = await api.getMe(token);
+        setAuthState(me);
 
-      if (!meResponse.ok) {
-        setAuthState({
-          app: { authenticated: false },
-          github: { connected: false },
-          discord: { guildIds: [] },
-          telegram: {},
-        });
-        setOverview(null);
-        setRepos([]);
-        setTargetRepoUrl("");
-        setTargetBaseBranch("main");
-        setDiscordGuildIdInput("");
-        setDiscordGuildIds([]);
-        setTelegramChatId("");
-        return;
-      }
-
-      const meJson = (await meResponse.json()) as AuthMeResponse;
-      setAuthState(meJson);
-
-      if (!meJson.app.authenticated) {
-        setOverview(null);
-        setRepos([]);
-        setTargetRepoUrl("");
-        setTargetBaseBranch("main");
-        setDiscordGuildIdInput("");
-        setDiscordGuildIds([]);
-        setTelegramChatId("");
-        return;
-      }
-
-      if (meJson.github.target) {
-        setTargetRepoUrl(meJson.github.target.repoUrl);
-        setTargetBaseBranch(meJson.github.target.baseBranch);
-      } else {
-        setTargetRepoUrl("");
-        setTargetBaseBranch("main");
-      }
-      setDiscordGuildIds(meJson.discord.guildIds ?? []);
-      setTelegramChatId(meJson.telegram.chatId ?? "");
-
-      const overviewResponse = await fetch(`${API_URL}/observability/overview?limit=15`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (overviewResponse.ok) {
-        setOverview((await overviewResponse.json()) as ObservabilityResponse);
-      } else {
-        setOverview(null);
-      }
-
-      if (meJson.github.connected) {
-        const reposResponse = await fetch(`${API_URL}/auth/github/repos`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (reposResponse.ok) {
-          const reposJson = (await reposResponse.json()) as { repos: Repo[] };
-          setRepos(reposJson.repos.slice(0, 8));
+        if (!me.app.authenticated) {
+          setView("landing");
+          return;
         }
-      } else {
-        setRepos([]);
+
+        if (me.github.connected) {
+          try {
+            const reposData = await api.getRepos(token);
+            setRepos(reposData.repos.slice(0, 12));
+          } catch {
+            /* silent */
+          }
+        }
+
+        if (!me.github.connected || !me.github.target) {
+          setView("onboarding");
+        } else {
+          setView("dashboard");
+        }
+      } catch {
+        setView("landing");
       }
-    } catch {
-      setError("Unable to reach backend.");
-      setOverview(null);
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
-    if (!supabase) {
-      return;
-    }
+    if (!supabase) return;
 
     supabase.auth
       .getSession()
@@ -224,8 +96,8 @@ export default function Home() {
         setAccessToken(token);
         await loadBackendData(token);
       })
-      .finally(() => {
-        setLoading(false);
+      .catch(() => {
+        setView("landing");
       });
 
     const {
@@ -236,561 +108,85 @@ export default function Home() {
       void loadBackendData(token);
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, [loadBackendData, supabase]);
 
   async function signInWithGoogle() {
-    if (!supabase) {
-      setError("Supabase is not configured.");
-      return;
-    }
-
-    setError("");
+    if (!supabase) return;
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: window.location.origin,
-      },
+      options: { redirectTo: window.location.origin },
     });
   }
 
   async function signOut() {
-    if (!supabase) {
-      return;
-    }
-
-    setError("");
+    if (!supabase) return;
     await supabase.auth.signOut();
     setAccessToken(null);
-    setAuthState({
-      app: { authenticated: false },
-      github: { connected: false },
-      discord: { guildIds: [] },
-      telegram: {},
-    });
-    setOverview(null);
+    setAuthState(null);
     setRepos([]);
-    setTargetRepoUrl("");
-    setTargetBaseBranch("main");
-    setDiscordGuildIdInput("");
-    setDiscordGuildIds([]);
-    setTelegramChatId("");
+    setOnboardingDismissed(false);
+    setView("landing");
   }
 
   async function connectGithub() {
-    if (!accessToken) {
-      setError("Sign in first.");
-      return;
+    if (!accessToken) return;
+    try {
+      const { url } = await api.getGitHubUrl(accessToken);
+      window.location.assign(url);
+    } catch {
+      /* silent */
     }
-
-    setError("");
-
-    const response = await fetch(`${API_URL}/auth/github/url?next=/`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      setError("Failed to start GitHub authorization.");
-      return;
-    }
-
-    const body = (await response.json()) as { url: string };
-    window.location.assign(body.url);
   }
 
-  async function disconnectGithub() {
-    if (!accessToken) {
-      return;
-    }
-
-    setError("");
-
-    const response = await fetch(`${API_URL}/auth/github/disconnect`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      setError("Failed to disconnect GitHub.");
-      return;
-    }
-
+  async function handleSaveTarget(repoUrl: string, baseBranch: string) {
+    if (!accessToken) return;
+    await api.saveTarget(accessToken, repoUrl, baseBranch);
     await loadBackendData(accessToken);
   }
 
-  async function saveGithubTarget() {
-    if (!accessToken) {
-      setError("Sign in first.");
-      return;
-    }
-
-    if (!targetRepoUrl.trim()) {
-      setError("Select a target repository.");
-      return;
-    }
-
-    if (!targetBaseBranch.trim()) {
-      setError("Enter a base branch.");
-      return;
-    }
-
-    setSavingTarget(true);
-    setError("");
-
-    try {
-      const response = await fetch(`${API_URL}/auth/github/target`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          repoUrl: targetRepoUrl,
-          baseBranch: targetBaseBranch,
-        }),
-      });
-
-      if (!response.ok) {
-        setError("Failed to save target repository settings.");
-        return;
-      }
-
-      const payload = (await response.json()) as {
-        target: { repoUrl: string; baseBranch: string };
-      };
-      setTargetRepoUrl(payload.target.repoUrl);
-      setTargetBaseBranch(payload.target.baseBranch);
-      await loadBackendData(accessToken);
-    } finally {
-      setSavingTarget(false);
-    }
+  async function handleLinkDiscord(guildId: string) {
+    if (!accessToken) return;
+    await api.linkDiscord(accessToken, guildId);
+    await loadBackendData(accessToken);
   }
 
-  async function linkDiscordGuild() {
-    if (!accessToken) {
-      setError("Sign in first.");
-      return;
-    }
-
-    const normalized = discordGuildIdInput.trim();
-    if (!normalized) {
-      setError("Enter a Discord server (guild) ID.");
-      return;
-    }
-
-    setSavingDiscordGuild(true);
-    setError("");
-
-    try {
-      const response = await fetch(`${API_URL}/auth/discord/guild-link`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ guildId: normalized }),
-      });
-
-      if (!response.ok) {
-        setError("Failed to link Discord server.");
-        return;
-      }
-
-      setDiscordGuildIdInput("");
-      await loadBackendData(accessToken);
-    } finally {
-      setSavingDiscordGuild(false);
-    }
+  function handleOnboardingComplete() {
+    setOnboardingDismissed(true);
+    setView("dashboard");
   }
 
-  async function unlinkDiscordGuild(guildId: string) {
-    if (!accessToken) {
-      return;
-    }
-
-    setSavingDiscordGuild(true);
-    setError("");
-
-    try {
-      const response = await fetch(`${API_URL}/auth/discord/guild-link`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ guildId }),
-      });
-
-      if (!response.ok) {
-        setError("Failed to unlink Discord server.");
-        return;
-      }
-
-      await loadBackendData(accessToken);
-    } finally {
-      setSavingDiscordGuild(false);
-    }
+  if (view === "loading") {
+    return <LoadingScreen />;
   }
 
-  async function linkTelegram() {
-    if (!accessToken) {
-      setError("Sign in first.");
-      return;
-    }
-
-    const normalized = telegramChatId.trim();
-    if (!normalized) {
-      setError("Enter a Telegram chat ID.");
-      return;
-    }
-
-    setSavingTelegram(true);
-    setError("");
-
-    try {
-      const response = await fetch(`${API_URL}/auth/telegram/link`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ telegramChatId: normalized }),
-      });
-
-      if (!response.ok) {
-        setError("Failed to link Telegram chat ID.");
-        return;
-      }
-
-      await loadBackendData(accessToken);
-    } finally {
-      setSavingTelegram(false);
-    }
+  if (view === "landing" || !authState?.app.authenticated) {
+    return <Landing onSignIn={signInWithGoogle} />;
   }
 
-  async function unlinkTelegram() {
-    if (!accessToken) {
-      return;
-    }
-
-    setSavingTelegram(true);
-    setError("");
-
-    try {
-      const response = await fetch(`${API_URL}/auth/telegram/link`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        setError("Failed to unlink Telegram chat ID.");
-        return;
-      }
-
-      setTelegramChatId("");
-      await loadBackendData(accessToken);
-    } finally {
-      setSavingTelegram(false);
-    }
+  if (view === "onboarding" && !onboardingDismissed) {
+    return (
+      <Onboarding
+        githubConnected={authState.github.connected}
+        githubLogin={authState.github.login}
+        repos={repos}
+        onConnectGithub={connectGithub}
+        onSaveTarget={handleSaveTarget}
+        onLinkDiscord={handleLinkDiscord}
+        onComplete={handleOnboardingComplete}
+        hasTarget={!!authState.github.target}
+      />
+    );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-10">
-        <header className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-          <h1 className="text-3xl font-semibold tracking-tight">CFCA Observability</h1>
-          <p className="mt-2 text-sm text-slate-300">
-            Sign in with Google (Supabase), connect GitHub, and monitor system activity.
-          </p>
-        </header>
-
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-          <h2 className="text-xl font-semibold">Account</h2>
-          {loading ? (
-            <p className="mt-3 text-sm text-slate-300">Loading...</p>
-          ) : authState?.app.authenticated ? (
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-              <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-emerald-300">
-                Signed in: {userLabel}
-              </span>
-              <button
-                onClick={signOut}
-                className="rounded-lg border border-slate-700 px-3 py-1 hover:bg-slate-800"
-              >
-                Sign out
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={signInWithGoogle}
-              disabled={!supabaseConfigured}
-              className="mt-3 rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-200"
-            >
-              Sign in with Google
-            </button>
-          )}
-        </section>
-
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-          <h2 className="text-xl font-semibold">GitHub Connection</h2>
-          {!authState?.app.authenticated ? (
-            <p className="mt-3 text-sm text-slate-300">Sign in first.</p>
-          ) : authState.github.connected ? (
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-              <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-emerald-300">
-                Connected as @{authState.github.login}
-              </span>
-              <button
-                onClick={disconnectGithub}
-                className="rounded-lg border border-slate-700 px-3 py-1 hover:bg-slate-800"
-              >
-                Disconnect GitHub
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={connectGithub}
-              className="mt-3 rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-200"
-            >
-              Connect GitHub
-            </button>
-          )}
-
-          {repos.length > 0 ? (
-            <div className="mt-4 grid gap-2 text-sm text-slate-300">
-              <p className="text-slate-200">Recent writable repositories</p>
-              {repos.map((repo) => (
-                <div
-                  key={repo.id}
-                  className="flex items-center justify-between gap-3 rounded border border-slate-800 px-3 py-2"
-                >
-                  <a
-                    href={repo.html_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:underline"
-                  >
-                    {repo.full_name} ({repo.default_branch})
-                  </a>
-                  <button
-                    onClick={() => {
-                      setTargetRepoUrl(toGitUrl(repo.html_url));
-                      if (!targetBaseBranch.trim()) {
-                        setTargetBaseBranch(repo.default_branch);
-                      }
-                    }}
-                    className="rounded border border-slate-700 px-2 py-1 text-xs hover:bg-slate-800"
-                  >
-                    Use
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          {authState?.github.connected ? (
-            <div className="mt-5 grid gap-3 rounded border border-slate-800 bg-slate-950/40 p-4 text-sm">
-              <p className="font-medium text-slate-200">PR target settings (per user)</p>
-              <label className="grid gap-1">
-                <span className="text-xs text-slate-400">Target repository URL</span>
-                <input
-                  value={targetRepoUrl}
-                  onChange={(event) => setTargetRepoUrl(event.target.value)}
-                  placeholder="https://github.com/owner/repo.git"
-                  className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
-                />
-              </label>
-              <label className="grid gap-1">
-                <span className="text-xs text-slate-400">Base branch</span>
-                <input
-                  value={targetBaseBranch}
-                  onChange={(event) => setTargetBaseBranch(event.target.value)}
-                  placeholder="main"
-                  className="rounded border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
-                />
-              </label>
-              <button
-                onClick={saveGithubTarget}
-                disabled={savingTarget}
-                className="w-fit rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800 disabled:opacity-60"
-              >
-                {savingTarget ? "Saving..." : "Save target"}
-              </button>
-
-              <div className="mt-2 border-t border-slate-800 pt-3">
-                <p className="font-medium text-slate-200">Discord server links</p>
-                <p className="mt-1 text-xs text-slate-400">
-                  Invite the bot to your server, then link the server ID once. Messages from that
-                  server route to your saved repo target.
-                </p>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <input
-                    value={discordGuildIdInput}
-                    onChange={(event) => setDiscordGuildIdInput(event.target.value)}
-                    placeholder="Discord server (guild) ID"
-                    className="min-w-[220px] rounded border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
-                  />
-                  <button
-                    onClick={linkDiscordGuild}
-                    disabled={savingDiscordGuild}
-                    className="rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800 disabled:opacity-60"
-                  >
-                    {savingDiscordGuild ? "Saving..." : "Link server"}
-                  </button>
-                </div>
-                {discordGuildIds.length > 0 ? (
-                  <div className="mt-3 grid gap-2">
-                    {discordGuildIds.map((guildId) => (
-                      <div
-                        key={guildId}
-                        className="flex items-center justify-between gap-2 rounded border border-slate-800 px-3 py-2"
-                      >
-                        <span className="text-xs text-slate-300">{guildId}</span>
-                        <button
-                          onClick={() => unlinkDiscordGuild(guildId)}
-                          disabled={savingDiscordGuild}
-                          className="rounded border border-slate-700 px-2 py-1 text-xs hover:bg-slate-800 disabled:opacity-60"
-                        >
-                          Unlink
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="mt-2 text-xs text-slate-400">No Discord servers linked yet.</p>
-                )}
-              </div>
-
-              <div className="mt-2 border-t border-slate-800 pt-3">
-                <p className="font-medium text-slate-200">Telegram chat link</p>
-                <p className="mt-1 text-xs text-slate-400">
-                  Optional: set your Telegram chat ID to receive PR notifications personally.
-                </p>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <input
-                    value={telegramChatId}
-                    onChange={(event) => setTelegramChatId(event.target.value)}
-                    placeholder="Telegram chat ID"
-                    className="min-w-[220px] rounded border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
-                  />
-                  <button
-                    onClick={linkTelegram}
-                    disabled={savingTelegram}
-                    className="rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800 disabled:opacity-60"
-                  >
-                    {savingTelegram ? "Saving..." : "Save Telegram chat"}
-                  </button>
-                  <button
-                    onClick={unlinkTelegram}
-                    disabled={savingTelegram}
-                    className="rounded-lg border border-slate-700 px-3 py-2 hover:bg-slate-800 disabled:opacity-60"
-                  >
-                    Unlink Telegram
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </section>
-
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-          <h2 className="text-xl font-semibold">System Overview</h2>
-          {!authState?.app.authenticated ? (
-            <p className="mt-3 text-sm text-slate-300">Sign in to view observability data.</p>
-          ) : !overview ? (
-            <p className="mt-3 text-sm text-slate-300">No data available yet.</p>
-          ) : (
-            <>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <StatCard label="Messages" value={overview.counts.messagesTotal} />
-                <StatCard label="Complaints" value={overview.counts.complaintsTotal} />
-                <StatCard label="Pending Complaints" value={overview.counts.complaintsPending} />
-                <StatCard label="Needs Manual" value={overview.counts.complaintsManual} />
-                <StatCard label="PRs Open" value={overview.counts.prsOpen} />
-                <StatCard label="PRs Merged" value={overview.counts.prsMerged} />
-              </div>
-
-              <div className="mt-6 grid gap-6 lg:grid-cols-2">
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold text-slate-200">Recent Complaints</h3>
-                  <div className="space-y-2">
-                    {overview.recentComplaints.map((item) => (
-                      <div key={item.id} className="rounded border border-slate-800 p-3 text-sm">
-                        <p className="font-medium">{item.summary}</p>
-                        <p className="mt-1 text-slate-400">{item.message_text}</p>
-                        <p className="mt-2 text-xs text-slate-400">
-                          {item.status} • {item.severity} • {item.intent}
-                        </p>
-                        {item.failure_reason ? (
-                          <p className="mt-2 whitespace-pre-wrap rounded border border-rose-900/60 bg-rose-950/40 px-2 py-1 text-xs text-rose-200">
-                            {item.failure_reason}
-                          </p>
-                        ) : null}
-                        {item.pr_url ? (
-                          <a
-                            href={item.pr_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-2 inline-block text-xs text-emerald-300 hover:underline"
-                          >
-                            PR #{item.pr_number} ({item.pr_status})
-                          </a>
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold text-slate-200">Recent PRs</h3>
-                  <div className="space-y-2">
-                    {overview.recentPrs.map((item) => (
-                      <a
-                        key={item.id}
-                        href={item.pr_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="block rounded border border-slate-800 p-3 text-sm hover:bg-slate-800"
-                      >
-                        <p className="font-medium">
-                          {item.repo} #{item.pr_number}
-                        </p>
-                        <p className="mt-1 text-slate-400">{item.summary ?? "No summary"}</p>
-                        <p className="mt-2 text-xs text-slate-400">
-                          {item.status} • {item.severity ?? "n/a"}
-                        </p>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </section>
-
-        {error ? (
-          <p className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-200">
-            {error}
-          </p>
-        ) : null}
-      </main>
-    </div>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded border border-slate-800 bg-slate-950/50 p-4">
-      <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="mt-2 text-2xl font-semibold">{value}</p>
-    </div>
+    <Dashboard
+      accessToken={accessToken!}
+      authState={authState}
+      onSignOut={signOut}
+      onRefresh={() => {
+        if (accessToken) void loadBackendData(accessToken);
+      }}
+    />
   );
 }
