@@ -415,11 +415,4 @@ Recommended production split:
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-## Known MVP Constraints
-- No multi-tenant hardening or enterprise permissions model.
-- No autonomous merge logic; merge is still developer-controlled.
-- Queue workers run in-process by default.
-- Operational telemetry is basic (API endpoint + session stream).
-- Frontend currently depends on Supabase browser auth and API bearer pass-through.
-
 ---
