@@ -1,6 +1,6 @@
-# CFCA (Reflex) Monorepo
+# Reflex
 
-Customer Feedback -> Code Agent (CFCA) is a hackathon MVP that closes the loop between community feedback and shipped code.
+Reflex is a hackathon MVP that closes the loop between community feedback and shipped code.
 
 It listens to Discord messages, classifies intent with Mistral, opens code-fix PRs against a configured GitHub repo via a Vibe-powered workflow, notifies the developer on Telegram, and follows up in Discord after merge.
 
