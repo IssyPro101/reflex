@@ -214,7 +214,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                   <div className="h-12 flex items-center px-4 border-b border-white/[0.04]">
                     <div className="flex items-center gap-2 text-[14px] font-medium text-zinc-300">
                       <img src="/logo.png" alt="Reflex" className="w-3.5 h-3.5" />
-                      Workspace
+                      Reflex
                     </div>
                   </div>
                   <nav className="flex-1 p-2 space-y-0.5">

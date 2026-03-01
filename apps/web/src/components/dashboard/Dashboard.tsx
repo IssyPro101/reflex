@@ -166,7 +166,7 @@ export function Dashboard({
         <div className="h-14 flex items-center justify-between px-4 border-b border-white/[0.04]">
           <div className="flex items-center gap-2 text-[15px] font-medium text-white">
             <img src="/logo.png" alt="Reflex" className="w-4 h-4" />
-            Workspace
+            Reflex
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
