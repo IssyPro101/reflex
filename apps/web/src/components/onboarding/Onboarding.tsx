@@ -130,7 +130,7 @@ export function Onboarding(props: Props) {
       <header className="fixed top-0 inset-x-0 h-16 flex items-center justify-center border-b border-white/[0.08] bg-black/80 backdrop-blur-md z-10">
         <div className="flex items-center gap-2">
           <img src="/logo.png" alt="Reflex" className="w-4 h-4" />
-          <span className="font-semibold tracking-tight text-[16px]">Reflex Setup</span>
+          <span className="font-semibold tracking-tight text-[16px]">Reflex</span>
         </div>
       </header>
 
