@@ -240,7 +240,7 @@ export function Dashboard({
   ];
 
   const inputClass =
-    "w-full px-3 py-2 rounded-md bg-[#0A0A0A] border border-white/[0.08] text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/[0.2] transition-colors text-[13px]";
+    "w-full px-3 py-2 rounded-md bg-[#0A0A0A] border border-white/[0.08] text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/[0.2] transition-colors text-[14px]";
 
   return (
     <div className="min-h-screen bg-black text-white flex font-sans selection:bg-white/20">
@@ -265,7 +265,7 @@ export function Dashboard({
         )}
       >
         <div className="h-14 flex items-center justify-between px-4 border-b border-white/[0.04]">
-          <div className="flex items-center gap-2 text-[14px] font-medium text-white">
+          <div className="flex items-center gap-2 text-[15px] font-medium text-white">
             <img src="/logo.png" alt="Reflex" className="w-4 h-4" />
             Workspace
           </div>
@@ -286,7 +286,7 @@ export function Dashboard({
                 setSidebarOpen(false);
               }}
               className={cn(
-                "w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors cursor-pointer",
+                "w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-[14px] font-medium transition-colors cursor-pointer",
                 tab === item.id
                   ? "bg-white/[0.08] text-white"
                   : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]",
@@ -302,16 +302,16 @@ export function Dashboard({
         <div className="p-3 border-t border-white/[0.04]">
           <div className="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-white/[0.04] transition-colors cursor-pointer group">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-5 h-5 rounded-full bg-zinc-800 border border-white/[0.1] flex items-center justify-center text-[10px] font-medium shrink-0">
+              <div className="w-5 h-5 rounded-full bg-zinc-800 border border-white/[0.1] flex items-center justify-center text-[11px] font-medium shrink-0">
                 {userLabel.replace("@", "").charAt(0).toUpperCase()}
               </div>
-              <p className="text-[13px] font-medium text-zinc-300 truncate group-hover:text-white transition-colors">{userLabel}</p>
+              <p className="text-[14px] font-medium text-zinc-300 truncate group-hover:text-white transition-colors">{userLabel}</p>
             </div>
             <MoreHorizontal className="w-4 h-4 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <button
             onClick={onSignOut}
-            className="w-full flex items-center gap-2.5 px-2 py-1.5 mt-1 rounded-md text-[13px] text-zinc-500 hover:text-red-400 hover:bg-white/[0.04] transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-2 py-1.5 mt-1 rounded-md text-[14px] text-zinc-500 hover:text-red-400 hover:bg-white/[0.04] transition-colors cursor-pointer"
           >
             <LogOut className="w-[14px] h-[14px]" />
             Log out
@@ -330,7 +330,7 @@ export function Dashboard({
             >
               <Menu className="w-4 h-4" />
             </button>
-            <h1 className="text-[14px] font-medium text-zinc-200">
+            <h1 className="text-[15px] font-medium text-zinc-200">
               {tab === "overview" ? "Overview" : tab === "sessions" ? "Agent Sessions" : "Settings"}
             </h1>
           </div>
@@ -341,7 +341,7 @@ export function Dashboard({
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="text-[13px] text-zinc-400 bg-white/[0.08] px-2 py-0.5 rounded-md"
+                  className="text-[14px] text-zinc-400 bg-white/[0.08] px-2 py-0.5 rounded-md"
                 >
                   {savedFeedback}
                 </motion.span>
@@ -350,7 +350,7 @@ export function Dashboard({
             {tab === "overview" && (
               <button
                 onClick={loadOverview}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[13px] text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer border border-transparent hover:border-white/[0.1]"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[14px] text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer border border-transparent hover:border-white/[0.1]"
               >
                 <RefreshCw
                   className={cn(
@@ -380,10 +380,10 @@ export function Dashboard({
                   {/* Channels indicators */}
                   <div className="flex flex-wrap items-center gap-6 mb-6 pb-4 border-b border-white/[0.04]">
                     <div className="flex items-center gap-2">
-                      <span className="text-[12px] font-medium text-zinc-500 uppercase tracking-wider mr-2">Listening On</span>
+                      <span className="text-[13px] font-medium text-zinc-500 uppercase tracking-wider mr-2">Listening On</span>
                       <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.03] border border-white/[0.08]">
                         <DiscordIcon className="w-3.5 h-3.5 text-[#5865F2]" />
-                        <span className="text-[12px] text-zinc-300">
+                        <span className="text-[13px] text-zinc-300">
                           {discordGuilds.length > 0 ? `${discordGuilds.length} Server${discordGuilds.length > 1 ? 's' : ''}` : 'None'}
                         </span>
                       </div>
@@ -392,10 +392,10 @@ export function Dashboard({
                     <div className="w-px h-4 bg-white/[0.08] hidden sm:block"></div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-[12px] font-medium text-zinc-500 uppercase tracking-wider mr-2">Modifying</span>
+                      <span className="text-[13px] font-medium text-zinc-500 uppercase tracking-wider mr-2">Modifying</span>
                       <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.03] border border-white/[0.08]">
                         <Github className="w-3.5 h-3.5 text-zinc-400" />
-                        <span className="text-[12px] text-zinc-300">
+                        <span className="text-[13px] text-zinc-300">
                           {targetRepoUrl ? targetRepoUrl.replace('https://github.com/', '') : 'None'}
                         </span>
                       </div>
@@ -404,10 +404,10 @@ export function Dashboard({
                     <div className="w-px h-4 bg-white/[0.08] hidden sm:block"></div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-[12px] font-medium text-zinc-500 uppercase tracking-wider mr-2">Notifying</span>
+                      <span className="text-[13px] font-medium text-zinc-500 uppercase tracking-wider mr-2">Notifying</span>
                       <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.03] border border-white/[0.08]">
                         <TelegramIcon className="w-3.5 h-3.5 text-[#26A5E4]" />
-                        <span className="text-[12px] text-zinc-300">
+                        <span className="text-[13px] text-zinc-300">
                           {telegramChatId ? 'Active' : 'None'}
                         </span>
                       </div>
@@ -431,17 +431,17 @@ export function Dashboard({
                     <div className="flex flex-wrap gap-8 mb-12">
                       {stats.map((stat) => (
                         <div key={stat.label} className="border-l-2 border-white/[0.08] pl-4">
-                          <p className="text-[12px] font-medium text-zinc-500 mb-1 flex items-center gap-1.5">
+                          <p className="text-[13px] font-medium text-zinc-500 mb-1 flex items-center gap-1.5">
                             {stat.label}
                           </p>
-                          <p className="text-2xl font-semibold tracking-tight text-white">
+                          <p className="text-[25px] font-semibold tracking-tight text-white">
                             {stat.value}
                           </p>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-[13px] text-zinc-500">No data available yet.</div>
+                    <div className="text-[14px] text-zinc-500">No data available yet.</div>
                   )}
 
                   {/* Activity Lists */}
@@ -451,12 +451,12 @@ export function Dashboard({
                       <div>
                         <div className="flex items-center gap-2 mb-4 border-b border-white/[0.08] pb-2">
                           <AlertTriangle className="w-4 h-4 text-zinc-500" />
-                          <h2 className="text-[13px] font-medium text-zinc-300">Issues</h2>
-                          <span className="text-[11px] text-zinc-600 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">{overview.recentComplaints.length}</span>
+                          <h2 className="text-[14px] font-medium text-zinc-300">Issues</h2>
+                          <span className="text-[12px] text-zinc-600 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">{overview.recentComplaints.length}</span>
                         </div>
                         <div className="space-y-[1px] max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
                           {overview.recentComplaints.length === 0 ? (
-                            <p className="text-[13px] text-zinc-600">No issues yet.</p>
+                            <p className="text-[14px] text-zinc-600">No issues yet.</p>
                           ) : (
                             overview.recentComplaints.map((item) => (
                               <div
@@ -464,22 +464,22 @@ export function Dashboard({
                                 className="group flex flex-col p-3 hover:bg-white/[0.04] rounded-lg transition-colors"
                               >
                                 <div className="flex items-start justify-between gap-3 mb-1.5">
-                                  <p className="text-[14px] font-medium text-zinc-200 line-clamp-1">{item.summary}</p>
-                                  <span className="text-[12px] text-zinc-600 shrink-0 mt-0.5">{timeAgo(item.created_at)}</span>
+                                  <p className="text-[15px] font-medium text-zinc-200 line-clamp-1">{item.summary}</p>
+                                  <span className="text-[13px] text-zinc-600 shrink-0 mt-0.5">{timeAgo(item.created_at)}</span>
                                 </div>
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className={`px-1.5 py-0.5 rounded border text-[10px] font-medium uppercase tracking-wider ${statusBadge(item.status)}`}>
+                                  <span className={`px-1.5 py-0.5 rounded border text-[11px] font-medium uppercase tracking-wider ${statusBadge(item.status)}`}>
                                     {item.status.replace("_", " ")}
                                   </span>
-                                  <span className="text-[12px] text-zinc-500">
+                                  <span className="text-[13px] text-zinc-500">
                                     <span className="text-zinc-600 mr-1">@</span>{item.username}
                                   </span>
-                                  <span className="text-[12px] text-zinc-600 ml-auto flex items-center gap-1">
+                                  <span className="text-[13px] text-zinc-600 ml-auto flex items-center gap-1">
                                     {item.intent.replace("_", " ")}
                                   </span>
                                 </div>
                                 {item.pr_url && (
-                                  <a href={item.pr_url} target="_blank" rel="noreferrer" className="mt-2 text-[12px] flex items-center gap-1 text-zinc-400 hover:text-white transition-colors w-fit group/link">
+                                  <a href={item.pr_url} target="_blank" rel="noreferrer" className="mt-2 text-[13px] flex items-center gap-1 text-zinc-400 hover:text-white transition-colors w-fit group/link">
                                     <GitPullRequest className="w-3.5 h-3.5" />
                                     <span>PR #{item.pr_number}</span>
                                     <ExternalLink className="w-3 h-3 opacity-0 group-hover/link:opacity-100 transition-opacity" />
@@ -495,12 +495,12 @@ export function Dashboard({
                       <div>
                         <div className="flex items-center gap-2 mb-4 border-b border-white/[0.08] pb-2">
                           <GitPullRequest className="w-4 h-4 text-zinc-500" />
-                          <h2 className="text-[13px] font-medium text-zinc-300">Pull Requests</h2>
-                          <span className="text-[11px] text-zinc-600 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">{overview.recentPrs.length}</span>
+                          <h2 className="text-[14px] font-medium text-zinc-300">Pull Requests</h2>
+                          <span className="text-[12px] text-zinc-600 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">{overview.recentPrs.length}</span>
                         </div>
                         <div className="space-y-[1px] max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
                           {overview.recentPrs.length === 0 ? (
-                            <p className="text-[13px] text-zinc-600">No pull requests yet.</p>
+                            <p className="text-[14px] text-zinc-600">No pull requests yet.</p>
                           ) : (
                             overview.recentPrs.map((item) => (
                               <a
@@ -511,18 +511,18 @@ export function Dashboard({
                                 className="group flex flex-col p-3 hover:bg-white/[0.04] rounded-lg transition-colors cursor-pointer"
                               >
                                 <div className="flex items-start justify-between gap-3 mb-1.5">
-                                  <p className="text-[14px] font-medium text-zinc-200 line-clamp-1 flex items-center gap-2">
+                                  <p className="text-[15px] font-medium text-zinc-200 line-clamp-1 flex items-center gap-2">
                                     <span className="text-zinc-500">#{item.pr_number}</span>
                                     {item.repo}
                                   </p>
-                                  <span className="text-[12px] text-zinc-600 shrink-0 mt-0.5 group-hover:hidden">{timeAgo(item.created_at)}</span>
+                                  <span className="text-[13px] text-zinc-600 shrink-0 mt-0.5 group-hover:hidden">{timeAgo(item.created_at)}</span>
                                   <ExternalLink className="w-3.5 h-3.5 text-zinc-500 hidden group-hover:block mt-0.5 shrink-0" />
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <span className={`px-1.5 py-0.5 rounded border text-[10px] font-medium uppercase tracking-wider ${statusBadge(item.status)}`}>
+                                  <span className={`px-1.5 py-0.5 rounded border text-[11px] font-medium uppercase tracking-wider ${statusBadge(item.status)}`}>
                                     {item.status}
                                   </span>
-                                  <span className="text-[12px] text-zinc-500 truncate max-w-[200px]">
+                                  <span className="text-[13px] text-zinc-500 truncate max-w-[200px]">
                                     {item.summary || "Automated fix"}
                                   </span>
                                 </div>
@@ -558,12 +558,12 @@ export function Dashboard({
                   <div className="space-y-10">
                     {/* Settings Sections */}
                     <section>
-                      <h3 className="text-[14px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
+                      <h3 className="text-[15px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
                         <Github className="w-4 h-4 text-zinc-400" />
                         GitHub Integration
                       </h3>
                       {authState.github.connected ? (
-                        <div className="flex items-center justify-between text-[13px] p-3 rounded-lg border border-white/[0.08] bg-[#0A0A0A]">
+                        <div className="flex items-center justify-between text-[14px] p-3 rounded-lg border border-white/[0.08] bg-[#0A0A0A]">
                           <span className="text-zinc-300 flex items-center gap-2">
                             <CheckCircle2 className="w-4 h-4 text-white" />
                             Connected to @{authState.github.login}
@@ -571,19 +571,19 @@ export function Dashboard({
                           <button onClick={disconnectGithub} className="text-zinc-500 hover:text-white transition-colors">Disconnect</button>
                         </div>
                       ) : (
-                        <p className="text-[13px] text-zinc-500">Not connected.</p>
+                        <p className="text-[14px] text-zinc-500">Not connected.</p>
                       )}
                     </section>
 
                     <section>
-                      <h3 className="text-[14px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
+                      <h3 className="text-[15px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
                         <GitPullRequest className="w-4 h-4 text-zinc-400" />
                         Target Repository
                       </h3>
                       <div className="space-y-4">
                         <div className="grid sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-[12px] font-medium text-zinc-500 mb-1.5">Repository URL</label>
+                            <label className="block text-[13px] font-medium text-zinc-500 mb-1.5">Repository URL</label>
                             <input
                               value={targetRepoUrl}
                               onChange={(e) => setTargetRepoUrl(e.target.value)}
@@ -592,7 +592,7 @@ export function Dashboard({
                             />
                           </div>
                           <div>
-                            <label className="block text-[12px] font-medium text-zinc-500 mb-1.5">Base Branch</label>
+                            <label className="block text-[13px] font-medium text-zinc-500 mb-1.5">Base Branch</label>
                             <input
                               value={targetBranch}
                               onChange={(e) => setTargetBranch(e.target.value)}
@@ -604,7 +604,7 @@ export function Dashboard({
                         <button
                           onClick={saveTarget}
                           disabled={saving || !targetRepoUrl || !targetBranch}
-                          className="bg-white text-black px-4 py-1.5 rounded-md text-[13px] font-medium hover:bg-zinc-200 disabled:opacity-50 transition-colors"
+                          className="bg-white text-black px-4 py-1.5 rounded-md text-[14px] font-medium hover:bg-zinc-200 disabled:opacity-50 transition-colors"
                         >
                           Save changes
                         </button>
@@ -612,13 +612,13 @@ export function Dashboard({
                     </section>
 
                     <section>
-                      <h3 className="text-[14px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
+                      <h3 className="text-[15px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
                         <DiscordIcon className="w-4 h-4 text-[#5865F2]" />
                         Discord Servers
                       </h3>
                       <div className="space-y-3">
                         {discordGuilds.map((id) => (
-                          <div key={id} className="flex items-center justify-between text-[13px] p-2.5 rounded-md border border-white/[0.08] bg-[#0A0A0A]">
+                          <div key={id} className="flex items-center justify-between text-[14px] p-2.5 rounded-md border border-white/[0.08] bg-[#0A0A0A]">
                             <span className="font-mono text-zinc-400">{id}</span>
                             <button onClick={() => unlinkDiscord(id)} className="text-zinc-600 hover:text-red-400 transition-colors">
                               <Trash2 className="w-3.5 h-3.5" />
@@ -644,7 +644,7 @@ export function Dashboard({
                     </section>
 
                     <section>
-                      <h3 className="text-[14px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
+                      <h3 className="text-[15px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
                         <TelegramIcon className="w-4 h-4 text-[#26A5E4]" />
                         Telegram Notifications
                       </h3>
@@ -658,7 +658,7 @@ export function Dashboard({
                         <button
                           onClick={saveTelegram}
                           disabled={saving || !telegramChatId}
-                          className="bg-white text-black px-4 py-2 rounded-md text-[13px] font-medium hover:bg-zinc-200 disabled:opacity-50 transition-colors shrink-0"
+                          className="bg-white text-black px-4 py-2 rounded-md text-[14px] font-medium hover:bg-zinc-200 disabled:opacity-50 transition-colors shrink-0"
                         >
                           Save
                         </button>

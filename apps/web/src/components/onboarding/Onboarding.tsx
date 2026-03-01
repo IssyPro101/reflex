@@ -120,9 +120,9 @@ export function Onboarding(props: Props) {
   }
 
   const inputClass =
-    "w-full px-4 py-2.5 rounded-lg bg-[#0A0A0A] border border-white/[0.08] text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/[0.2] transition-colors text-[14px]";
+    "w-full px-4 py-2.5 rounded-lg bg-[#0A0A0A] border border-white/[0.08] text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/[0.2] transition-colors text-[15px]";
   
-  const labelClass = "text-[13px] text-zinc-400 mb-2 block font-medium";
+  const labelClass = "text-[14px] text-zinc-400 mb-2 block font-medium";
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col font-sans">
@@ -130,7 +130,7 @@ export function Onboarding(props: Props) {
       <header className="fixed top-0 inset-x-0 h-16 flex items-center justify-center border-b border-white/[0.08] bg-black/80 backdrop-blur-md z-10">
         <div className="flex items-center gap-2">
           <img src="/logo.png" alt="Reflex" className="w-4 h-4" />
-          <span className="font-semibold tracking-tight text-[15px]">Reflex Setup</span>
+          <span className="font-semibold tracking-tight text-[16px]">Reflex Setup</span>
         </div>
       </header>
 
@@ -183,23 +183,23 @@ export function Onboarding(props: Props) {
                   <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center">
                     <Github className="w-7 h-7 text-white" />
                   </div>
-                  <h2 className="text-[24px] font-medium tracking-tight mb-2">
+                  <h2 className="text-[25px] font-medium tracking-tight mb-2">
                     Connect GitHub
                   </h2>
-                  <p className="text-[15px] text-zinc-500">
+                  <p className="text-[16px] text-zinc-500">
                     Authorize Reflex to open pull requests automatically.
                   </p>
                 </div>
 
                 {props.githubConnected ? (
                   <div className="flex flex-col items-center gap-6 mt-8">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0A0A0A] border border-white/[0.08] text-[13px] text-zinc-300">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0A0A0A] border border-white/[0.08] text-[14px] text-zinc-300">
                       <CheckCircle2 className="w-4 h-4 text-white" />
                       Connected as @{props.githubLogin}
                     </div>
                     <button
                       onClick={goNext}
-                      className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black font-medium text-[14px] hover:bg-zinc-200 transition-colors cursor-pointer"
+                      className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black font-medium text-[15px] hover:bg-zinc-200 transition-colors cursor-pointer"
                     >
                       Continue
                       <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
@@ -209,7 +209,7 @@ export function Onboarding(props: Props) {
                   <div className="flex justify-center mt-8">
                     <button
                       onClick={props.onConnectGithub}
-                      className="group flex items-center gap-2.5 px-6 py-3 rounded-full bg-white text-black font-medium text-[14px] hover:bg-zinc-200 transition-colors cursor-pointer shadow-sm"
+                      className="group flex items-center gap-2.5 px-6 py-3 rounded-full bg-white text-black font-medium text-[15px] hover:bg-zinc-200 transition-colors cursor-pointer shadow-sm"
                     >
                       <Github className="w-4 h-4" />
                       Continue with GitHub
@@ -234,10 +234,10 @@ export function Onboarding(props: Props) {
                   <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center">
                     <GitBranch className="w-7 h-7 text-white" />
                   </div>
-                  <h2 className="text-[24px] font-medium tracking-tight mb-2">
+                  <h2 className="text-[25px] font-medium tracking-tight mb-2">
                     Target Repository
                   </h2>
-                  <p className="text-[15px] text-zinc-500">
+                  <p className="text-[16px] text-zinc-500">
                     Which repository should we open PRs against?
                   </p>
                 </div>
@@ -252,7 +252,7 @@ export function Onboarding(props: Props) {
                             setTargetRepoUrl(toGitUrl(repo.html_url));
                             setTargetBranch(repo.default_branch);
                           }}
-                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-[13px] transition-colors cursor-pointer ${
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-[14px] transition-colors cursor-pointer ${
                             targetRepoUrl === toGitUrl(repo.html_url)
                               ? "bg-white/[0.08] text-white"
                               : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
@@ -265,7 +265,7 @@ export function Onboarding(props: Props) {
                           )}
                           <div className="flex-1 min-w-0 flex items-center justify-between">
                             <span className="font-medium truncate">{repo.full_name}</span>
-                            <span className="text-[12px] opacity-60 ml-2 shrink-0">{repo.default_branch}</span>
+                            <span className="text-[13px] opacity-60 ml-2 shrink-0">{repo.default_branch}</span>
                           </div>
                         </button>
                       ))}
@@ -297,7 +297,7 @@ export function Onboarding(props: Props) {
                 <div className="flex items-center justify-between mt-10 pt-6 border-t border-white/[0.08]">
                   <button
                     onClick={goBack}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full text-[13px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full text-[14px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back
@@ -305,7 +305,7 @@ export function Onboarding(props: Props) {
                   <button
                     onClick={handleSaveTarget}
                     disabled={saving || !targetRepoUrl.trim()}
-                    className="group flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black font-medium text-[13px] hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                    className="group flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black font-medium text-[14px] hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                   >
                     {saving ? "Saving..." : "Continue"}
                     <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
@@ -329,21 +329,21 @@ export function Onboarding(props: Props) {
                   <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-[#5865F2]/10 border border-[#5865F2]/20 flex items-center justify-center">
                     <DiscordIcon className="w-7 h-7 text-[#5865F2]" />
                   </div>
-                  <h2 className="text-[24px] font-medium tracking-tight mb-2">
+                  <h2 className="text-[25px] font-medium tracking-tight mb-2">
                     Link Discord
                   </h2>
-                  <p className="text-[15px] text-zinc-500">
+                  <p className="text-[16px] text-zinc-500">
                     Optional: add your server ID so Reflex can monitor community feedback.
                   </p>
                 </div>
 
                 {discordLinked ? (
                   <div className="rounded-2xl border border-white/[0.08] bg-[#0A0A0A] p-5">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-[13px] text-zinc-300">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-[14px] text-zinc-300">
                       <CheckCircle2 className="w-4 h-4 text-white" />
                       Discord already linked
                     </div>
-                    <p className="text-[13px] text-zinc-500 mt-3">
+                    <p className="text-[14px] text-zinc-500 mt-3">
                       You can update connected servers later in Dashboard Settings.
                     </p>
                   </div>
@@ -364,7 +364,7 @@ export function Onboarding(props: Props) {
                 <div className="flex items-center justify-between mt-10 pt-6 border-t border-white/[0.08]">
                   <button
                     onClick={goBack}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full text-[13px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full text-[14px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back
@@ -373,7 +373,7 @@ export function Onboarding(props: Props) {
                     {!discordLinked && (
                       <button
                         onClick={goNext}
-                        className="px-4 py-2 rounded-full text-[13px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
+                        className="px-4 py-2 rounded-full text-[14px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
                       >
                         Skip
                       </button>
@@ -381,7 +381,7 @@ export function Onboarding(props: Props) {
                     <button
                       onClick={discordLinked ? goNext : handleLinkDiscord}
                       disabled={saving || (!discordLinked && !discordGuildId.trim())}
-                      className="group flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black font-medium text-[13px] hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      className="group flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black font-medium text-[14px] hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       {discordLinked ? "Continue" : saving ? "Linking..." : "Link & Continue"}
                       <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
@@ -406,21 +406,21 @@ export function Onboarding(props: Props) {
                   <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-[#26A5E4]/10 border border-[#26A5E4]/20 flex items-center justify-center">
                     <TelegramIcon className="w-7 h-7 text-[#26A5E4]" />
                   </div>
-                  <h2 className="text-[24px] font-medium tracking-tight mb-2">
+                  <h2 className="text-[25px] font-medium tracking-tight mb-2">
                     Link Telegram
                   </h2>
-                  <p className="text-[15px] text-zinc-500">
+                  <p className="text-[16px] text-zinc-500">
                     Optional: add a chat ID to receive update notifications.
                   </p>
                 </div>
 
                 {telegramLinked ? (
                   <div className="rounded-2xl border border-white/[0.08] bg-[#0A0A0A] p-5">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-[13px] text-zinc-300">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-[14px] text-zinc-300">
                       <CheckCircle2 className="w-4 h-4 text-white" />
                       Telegram already linked
                     </div>
-                    <p className="text-[13px] text-zinc-500 mt-3">
+                    <p className="text-[14px] text-zinc-500 mt-3">
                       You can update the chat ID later in Dashboard Settings.
                     </p>
                   </div>
@@ -441,7 +441,7 @@ export function Onboarding(props: Props) {
                 <div className="flex items-center justify-between mt-10 pt-6 border-t border-white/[0.08]">
                   <button
                     onClick={goBack}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full text-[13px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full text-[14px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back
@@ -450,7 +450,7 @@ export function Onboarding(props: Props) {
                     {!telegramLinked && (
                       <button
                         onClick={goNext}
-                        className="px-4 py-2 rounded-full text-[13px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
+                        className="px-4 py-2 rounded-full text-[14px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
                       >
                         Skip
                       </button>
@@ -458,7 +458,7 @@ export function Onboarding(props: Props) {
                     <button
                       onClick={telegramLinked ? goNext : handleLinkTelegram}
                       disabled={saving || (!telegramLinked && !telegramChatId.trim())}
-                      className="group flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black font-medium text-[13px] hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      className="group flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black font-medium text-[14px] hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       {telegramLinked ? "Continue" : saving ? "Linking..." : "Link & Continue"}
                       <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
@@ -483,10 +483,10 @@ export function Onboarding(props: Props) {
                   <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center">
                     <CheckCircle2 className="w-7 h-7 text-white" />
                   </div>
-                  <h2 className="text-[24px] font-medium tracking-tight mb-2">
+                  <h2 className="text-[25px] font-medium tracking-tight mb-2">
                     You're all set
                   </h2>
-                  <p className="text-[15px] text-zinc-500">
+                  <p className="text-[16px] text-zinc-500">
                     Everything is configured. You can configure any integration in Settings.
                   </p>
                 </div>
@@ -497,13 +497,13 @@ export function Onboarding(props: Props) {
                       <Sparkles className="w-4 h-4 text-white" />
                     </div>
                     <div className="text-left">
-                      <p className="text-[14px] font-medium text-zinc-200">Setup complete</p>
-                      <p className="text-[13px] text-zinc-500 mt-1">
+                      <p className="text-[15px] font-medium text-zinc-200">Setup complete</p>
+                      <p className="text-[14px] text-zinc-500 mt-1">
                         {props.githubLogin ? `@${props.githubLogin}` : "GitHub account"} is connected and ready.
                       </p>
                     </div>
                   </div>
-                  <div className="grid gap-2 text-[13px]">
+                  <div className="grid gap-2 text-[14px]">
                     <div className="flex items-center justify-between rounded-lg border border-white/[0.06] px-3 py-2 bg-black/40">
                       <span className="flex items-center gap-2 text-zinc-500">
                         <DiscordIcon className="w-4 h-4 text-[#5865F2]" />
@@ -528,14 +528,14 @@ export function Onboarding(props: Props) {
                 <div className="flex items-center justify-between mt-10 pt-6 border-t border-white/[0.08]">
                   <button
                     onClick={goBack}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full text-[13px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full text-[14px] text-zinc-500 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back
                   </button>
                   <button
                     onClick={props.onComplete}
-                    className="group flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black font-medium text-[13px] hover:bg-zinc-200 transition-colors cursor-pointer"
+                    className="group flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black font-medium text-[14px] hover:bg-zinc-200 transition-colors cursor-pointer"
                   >
                     Open Dashboard
                     <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />

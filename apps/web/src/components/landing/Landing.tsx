@@ -86,12 +86,12 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
         <div className="max-w-[1100px] mx-auto px-6 py-4 flex items-center">
           <div className="flex items-center gap-2.5 flex-1">
             <img src="/logo.png" alt="Reflex" className="w-7 h-7" />
-            <span className="font-semibold tracking-tight text-[15px]">
+            <span className="font-semibold tracking-tight text-[16px]">
               Reflex
             </span>
           </div>
 
-          <div className="hidden md:flex items-center justify-center gap-8 text-[13px] text-zinc-500 font-medium">
+          <div className="hidden md:flex items-center justify-center gap-8 text-[14px] text-zinc-500 font-medium">
             <a
               href="#how-it-works"
               className="hover:text-white transition-colors duration-200"
@@ -106,7 +106,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
             </a>
           </div>
 
-          <div className="flex items-center justify-end gap-3 text-[13px] font-medium flex-1">
+          <div className="flex items-center justify-end gap-3 text-[14px] font-medium flex-1">
             <button
               onClick={onSignIn}
               className="hidden sm:block text-zinc-500 hover:text-white transition-colors duration-200"
@@ -138,14 +138,14 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
               variants={fadeUp}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
-              <span className="inline-flex items-center gap-2 text-[12px] font-medium tracking-wide uppercase text-zinc-500 border border-white/[0.08] rounded-full px-3.5 py-1.5 mb-8 bg-white/[0.02]">
+              <span className="inline-flex items-center gap-2 text-[13px] font-medium tracking-wide uppercase text-zinc-500 border border-white/[0.08] rounded-full px-3.5 py-1.5 mb-8 bg-white/[0.02]">
                 <img src="/mistral-logo.png" alt="Mistral AI" className="w-4 h-4" />
                 Powered by Mistral AI
               </span>
             </motion.div>
 
             <motion.h1
-              className="text-[40px] sm:text-[56px] md:text-[68px] leading-[1.08] tracking-[-0.035em] font-semibold bg-gradient-to-b from-white via-white to-zinc-500 bg-clip-text text-transparent"
+              className="text-[41px] sm:text-[57px] md:text-[69px] leading-[1.08] tracking-[-0.035em] font-semibold bg-gradient-to-b from-white via-white to-zinc-500 bg-clip-text text-transparent"
               variants={fadeUp}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
@@ -155,7 +155,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
             </motion.h1>
 
             <motion.p
-              className="mt-6 text-[17px] sm:text-[19px] text-zinc-400 leading-[1.65] max-w-[520px]"
+              className="mt-6 text-[18px] sm:text-[20px] text-zinc-400 leading-[1.65] max-w-[520px]"
               variants={fadeUp}
               transition={{
                 duration: 0.6,
@@ -178,7 +178,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
             >
               <button
                 onClick={onSignIn}
-                className="group inline-flex items-center gap-2.5 bg-white text-black px-6 py-3 rounded-full text-[14px] font-semibold hover:bg-zinc-100 transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                className="group inline-flex items-center gap-2.5 bg-white text-black px-6 py-3 rounded-full text-[15px] font-semibold hover:bg-zinc-100 transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
               >
                 Get started free
                 <ArrowRight className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200" />
@@ -203,7 +203,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                 <div className="w-2.5 h-2.5 rounded-full bg-white/[0.08]" />
                 <div className="w-2.5 h-2.5 rounded-full bg-white/[0.08]" />
                 <div className="w-2.5 h-2.5 rounded-full bg-white/[0.08]" />
-                <span className="text-[11px] text-zinc-600 ml-3 font-mono">
+                <span className="text-[12px] text-zinc-600 ml-3 font-mono">
                   reflex — dashboard
                 </span>
               </div>
@@ -212,7 +212,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                 {/* Sidebar — matches real Dashboard.tsx */}
                 <div className="w-full md:w-[200px] border-r border-white/[0.04] flex flex-col">
                   <div className="h-12 flex items-center px-4 border-b border-white/[0.04]">
-                    <div className="flex items-center gap-2 text-[13px] font-medium text-zinc-300">
+                    <div className="flex items-center gap-2 text-[14px] font-medium text-zinc-300">
                       <img src="/logo.png" alt="Reflex" className="w-3.5 h-3.5" />
                       Workspace
                     </div>
@@ -225,7 +225,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                     ].map((item) => (
                       <div
                         key={item.name}
-                        className={`flex items-center gap-2.5 text-[13px] px-3 py-1.5 rounded-md ${
+                        className={`flex items-center gap-2.5 text-[14px] px-3 py-1.5 rounded-md ${
                           item.active
                             ? "bg-white/[0.06] text-white font-medium"
                             : "text-zinc-500"
@@ -238,10 +238,10 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                   </nav>
                   <div className="p-3 border-t border-white/[0.04]">
                     <div className="flex items-center gap-2.5 px-2 py-1.5">
-                      <div className="w-5 h-5 rounded-full bg-zinc-800 border border-white/[0.1] flex items-center justify-center text-[10px] font-medium shrink-0">
+                      <div className="w-5 h-5 rounded-full bg-zinc-800 border border-white/[0.1] flex items-center justify-center text-[11px] font-medium shrink-0">
                         J
                       </div>
-                      <span className="text-[13px] text-zinc-400 truncate">@johndoe</span>
+                      <span className="text-[14px] text-zinc-400 truncate">@johndoe</span>
                     </div>
                   </div>
                 </div>
@@ -250,8 +250,8 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                 <div className="flex-1 flex flex-col min-w-0">
                   {/* Top bar */}
                   <div className="h-12 flex items-center justify-between px-6 border-b border-white/[0.04] shrink-0">
-                    <span className="text-[13px] font-medium text-zinc-300">Overview</span>
-                    <span className="text-[12px] text-zinc-600 flex items-center gap-1.5 px-2 py-1 rounded-md border border-white/[0.06]">
+                    <span className="text-[14px] font-medium text-zinc-300">Overview</span>
+                    <span className="text-[13px] text-zinc-600 flex items-center gap-1.5 px-2 py-1 rounded-md border border-white/[0.06]">
                       Refresh
                     </span>
                   </div>
@@ -260,26 +260,26 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                     {/* Listening On indicators */}
                     <div className="flex flex-wrap items-center gap-4 mb-5 pb-3 border-b border-white/[0.04]">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-medium text-zinc-600 uppercase tracking-wider">Listening On</span>
+                        <span className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Listening On</span>
                         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.06]">
                           <DiscordIcon className="w-3 h-3 text-[#5865F2]" />
-                          <span className="text-[11px] text-zinc-400">2 Servers</span>
+                          <span className="text-[12px] text-zinc-400">2 Servers</span>
                         </div>
                       </div>
                       <div className="w-px h-3 bg-white/[0.06] hidden sm:block" />
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-medium text-zinc-600 uppercase tracking-wider">Modifying</span>
+                        <span className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Modifying</span>
                         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.06]">
                           <Github className="w-3 h-3 text-zinc-500" />
-                          <span className="text-[11px] text-zinc-400">acme/api-server</span>
+                          <span className="text-[12px] text-zinc-400">acme/api-server</span>
                         </div>
                       </div>
                       <div className="w-px h-3 bg-white/[0.06] hidden sm:block" />
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-medium text-zinc-600 uppercase tracking-wider">Notifying</span>
+                        <span className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Notifying</span>
                         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.06]">
                           <TelegramIcon className="w-3 h-3 text-[#26A5E4]" />
-                          <span className="text-[11px] text-zinc-400">Active</span>
+                          <span className="text-[12px] text-zinc-400">Active</span>
                         </div>
                       </div>
                     </div>
@@ -295,8 +295,8 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                         { label: "PRs Merged", value: "16", icon: GitMerge },
                       ].map((stat) => (
                         <div key={stat.label} className="border-l-2 border-white/[0.06] pl-3">
-                          <p className="text-[10px] font-medium text-zinc-600 mb-0.5">{stat.label}</p>
-                          <p className="text-lg font-semibold tracking-tight text-white">{stat.value}</p>
+                          <p className="text-[11px] font-medium text-zinc-600 mb-0.5">{stat.label}</p>
+                          <p className="text-[19px] font-semibold tracking-tight text-white">{stat.value}</p>
                         </div>
                       ))}
                     </div>
@@ -307,8 +307,8 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                       <div>
                         <div className="flex items-center gap-2 mb-3 border-b border-white/[0.06] pb-1.5">
                           <AlertTriangle className="w-3.5 h-3.5 text-zinc-600" />
-                          <span className="text-[12px] font-medium text-zinc-400">Issues</span>
-                          <span className="text-[10px] text-zinc-700 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">3</span>
+                          <span className="text-[13px] font-medium text-zinc-400">Issues</span>
+                          <span className="text-[11px] text-zinc-700 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">3</span>
                         </div>
                         <div className="space-y-px">
                           {[
@@ -318,20 +318,20 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                           ].map((item) => (
                             <div key={item.summary} className="p-2.5 rounded-md hover:bg-white/[0.02]">
                               <div className="flex items-start justify-between gap-2 mb-1">
-                                <span className="text-[12px] font-medium text-zinc-300 line-clamp-1">{item.summary}</span>
-                                <span className="text-[10px] text-zinc-700 shrink-0">{item.time}</span>
+                                <span className="text-[13px] font-medium text-zinc-300 line-clamp-1">{item.summary}</span>
+                                <span className="text-[11px] text-zinc-700 shrink-0">{item.time}</span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className={`px-1.5 py-0.5 rounded border text-[9px] font-medium uppercase tracking-wider ${
+                                <span className={`px-1.5 py-0.5 rounded border text-[10px] font-medium uppercase tracking-wider ${
                                   item.status === "pr_created" ? "text-blue-400 border-blue-400/20 bg-blue-400/10"
                                     : item.status === "pending" ? "text-yellow-400 border-yellow-400/20 bg-yellow-400/10"
                                     : "text-emerald-400 border-emerald-400/20 bg-emerald-400/10"
                                 }`}>
                                   {item.status.replace("_", " ")}
                                 </span>
-                                <span className="text-[10px] text-zinc-600">@{item.user}</span>
+                                <span className="text-[11px] text-zinc-600">@{item.user}</span>
                                 {item.pr && (
-                                  <span className="text-[10px] text-zinc-500 ml-auto flex items-center gap-1">
+                                  <span className="text-[11px] text-zinc-500 ml-auto flex items-center gap-1">
                                     <GitPullRequest className="w-2.5 h-2.5" />
                                     PR {item.pr}
                                     <ExternalLink className="w-2 h-2" />
@@ -347,8 +347,8 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                       <div>
                         <div className="flex items-center gap-2 mb-3 border-b border-white/[0.06] pb-1.5">
                           <GitPullRequest className="w-3.5 h-3.5 text-zinc-600" />
-                          <span className="text-[12px] font-medium text-zinc-400">Pull Requests</span>
-                          <span className="text-[10px] text-zinc-700 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">3</span>
+                          <span className="text-[13px] font-medium text-zinc-400">Pull Requests</span>
+                          <span className="text-[11px] text-zinc-700 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">3</span>
                         </div>
                         <div className="space-y-px">
                           {[
@@ -358,20 +358,20 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                           ].map((item) => (
                             <div key={item.number} className="p-2.5 rounded-md hover:bg-white/[0.02]">
                               <div className="flex items-start justify-between gap-2 mb-1">
-                                <span className="text-[12px] font-medium text-zinc-300 line-clamp-1 flex items-center gap-1.5">
+                                <span className="text-[13px] font-medium text-zinc-300 line-clamp-1 flex items-center gap-1.5">
                                   <span className="text-zinc-600">{item.number}</span>
                                   {item.repo}
                                 </span>
                                 <ExternalLink className="w-2.5 h-2.5 text-zinc-700 shrink-0 mt-0.5" />
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className={`px-1.5 py-0.5 rounded border text-[9px] font-medium uppercase tracking-wider ${
+                                <span className={`px-1.5 py-0.5 rounded border text-[10px] font-medium uppercase tracking-wider ${
                                   item.status === "open" ? "text-emerald-400 border-emerald-400/20 bg-emerald-400/10"
                                     : "text-purple-400 border-purple-400/20 bg-purple-400/10"
                                 }`}>
                                   {item.status}
                                 </span>
-                                <span className="text-[10px] text-zinc-600 truncate">{item.summary}</span>
+                                <span className="text-[11px] text-zinc-600 truncate">{item.summary}</span>
                               </div>
                             </div>
                           ))}
@@ -397,10 +397,10 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <h2 className="text-[28px] sm:text-[36px] font-semibold tracking-[-0.02em]">
+            <h2 className="text-[29px] sm:text-[37px] font-semibold tracking-[-0.02em]">
               Three steps. Zero effort.
             </h2>
-            <p className="mt-3 text-zinc-500 text-[16px] max-w-md mx-auto">
+            <p className="mt-3 text-zinc-500 text-[17px] max-w-md mx-auto">
               From a Discord message to a merged pull request — fully automated.
             </p>
           </motion.div>
@@ -420,17 +420,17 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                 className="bg-[#08080A] p-8 md:p-10 flex flex-col"
               >
                 <div className="flex items-center gap-3 mb-5">
-                  <span className="text-[12px] font-mono text-zinc-600 tabular-nums">
+                  <span className="text-[13px] font-mono text-zinc-600 tabular-nums">
                     {step.number}
                   </span>
                   <div className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
                     <step.icon className="w-4 h-4 text-zinc-400" />
                   </div>
                 </div>
-                <h3 className="text-[17px] font-semibold mb-2 tracking-[-0.01em]">
+                <h3 className="text-[18px] font-semibold mb-2 tracking-[-0.01em]">
                   {step.title}
                 </h3>
-                <p className="text-[14px] text-zinc-500 leading-relaxed">
+                <p className="text-[15px] text-zinc-500 leading-relaxed">
                   {step.description}
                 </p>
               </motion.div>
@@ -447,10 +447,10 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <h2 className="text-[28px] sm:text-[36px] font-semibold tracking-[-0.02em]">
+            <h2 className="text-[29px] sm:text-[37px] font-semibold tracking-[-0.02em]">
               Everything you need
             </h2>
-            <p className="mt-3 text-zinc-500 text-[16px] max-w-md mx-auto">
+            <p className="mt-3 text-zinc-500 text-[17px] max-w-md mx-auto">
               Built for teams that ship fast and care about their community.
             </p>
           </motion.div>
@@ -472,10 +472,10 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                 <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-5 group-hover:bg-white/[0.06] transition-colors duration-300">
                   <feature.icon className="w-[18px] h-[18px] text-zinc-500 group-hover:text-zinc-300 transition-colors duration-300" />
                 </div>
-                <h3 className="text-[15px] font-semibold mb-2 tracking-[-0.01em]">
+                <h3 className="text-[16px] font-semibold mb-2 tracking-[-0.01em]">
                   {feature.title}
                 </h3>
-                <p className="text-[13px] text-zinc-500 leading-relaxed">
+                <p className="text-[14px] text-zinc-500 leading-relaxed">
                   {feature.description}
                 </p>
               </motion.div>
@@ -492,17 +492,17 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="max-w-[600px] mx-auto text-center">
-            <h2 className="text-[28px] sm:text-[36px] font-semibold tracking-[-0.02em] mb-4">
+            <h2 className="text-[29px] sm:text-[37px] font-semibold tracking-[-0.02em] mb-4">
               Start fixing bugs
               <br />
               before your users notice
             </h2>
-            <p className="text-zinc-500 text-[16px] mb-8 max-w-sm mx-auto">
+            <p className="text-zinc-500 text-[17px] mb-8 max-w-sm mx-auto">
               Connect your GitHub, Discord and Telegram. Reflex handles the rest.
             </p>
             <button
               onClick={onSignIn}
-              className="group inline-flex items-center gap-2.5 bg-white text-black px-7 py-3 rounded-full text-[14px] font-semibold hover:bg-zinc-100 transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+              className="group inline-flex items-center gap-2.5 bg-white text-black px-7 py-3 rounded-full text-[15px] font-semibold hover:bg-zinc-100 transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
             >
               Get started free
               <ArrowRight className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200" />
@@ -514,11 +514,11 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
       {/* Footer */}
       <footer className="border-t border-white/[0.06] py-8">
         <div className="max-w-[1100px] mx-auto px-6 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[13px] text-zinc-600">
+          <div className="flex items-center gap-2 text-[14px] text-zinc-600">
             <img src="/logo.png" alt="Reflex" className="w-3 h-3" />
             <span>Reflex</span>
           </div>
-          <span className="text-[12px] text-zinc-700">
+          <span className="text-[13px] text-zinc-700">
             Built for the Mistral AI Hackathon
           </span>
         </div>

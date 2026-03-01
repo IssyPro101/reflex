@@ -238,11 +238,11 @@ function MessageRow({ msg, index }: { msg: StreamMessage; index: number }) {
       <div className="py-2 border-b border-white/[0.04]">
         <div className="flex items-center gap-1.5 mb-1">
           <User className="w-3 h-3 text-cyan-400" />
-          <span className="text-[11px] font-semibold text-cyan-400 uppercase tracking-wider">
+          <span className="text-[12px] font-semibold text-cyan-400 uppercase tracking-wider">
             prompt
           </span>
         </div>
-        <p className="text-[12px] text-zinc-300 whitespace-pre-wrap break-words pl-[18px]">
+        <p className="text-[13px] text-zinc-300 whitespace-pre-wrap break-words pl-[18px]">
           {preview}
         </p>
       </div>
@@ -259,11 +259,11 @@ function MessageRow({ msg, index }: { msg: StreamMessage; index: number }) {
           <div className="mb-1">
             <div className="flex items-center gap-1.5 mb-1">
               <MessageSquare className="w-3 h-3 text-violet-400" />
-              <span className="text-[11px] font-semibold text-violet-400 uppercase tracking-wider">
+              <span className="text-[12px] font-semibold text-violet-400 uppercase tracking-wider">
                 agent
               </span>
             </div>
-            <p className="text-[12px] text-zinc-300 whitespace-pre-wrap break-words pl-[18px]">
+            <p className="text-[13px] text-zinc-300 whitespace-pre-wrap break-words pl-[18px]">
               {msg.content}
             </p>
           </div>
@@ -274,7 +274,7 @@ function MessageRow({ msg, index }: { msg: StreamMessage; index: number }) {
             return (
               <div
                 key={tc.id ?? i}
-                className="flex items-center gap-2 py-1 pl-[18px] text-[12px]"
+                className="flex items-center gap-2 py-1 pl-[18px] text-[13px]"
               >
                 <span className="text-amber-400/70">
                   {toolIcon(tc.function.name)}
@@ -303,7 +303,7 @@ function MessageRow({ msg, index }: { msg: StreamMessage; index: number }) {
       <div className="py-1 border-b border-white/[0.04]">
         <button
           onClick={() => setToolExpanded(!toolExpanded)}
-          className="flex items-center gap-2 text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors pl-[18px] cursor-pointer w-full text-left"
+          className="flex items-center gap-2 text-[12px] text-zinc-500 hover:text-zinc-300 transition-colors pl-[18px] cursor-pointer w-full text-left"
         >
           {toolExpanded ? (
             <ChevronDown className="w-3 h-3 shrink-0" />
@@ -315,7 +315,7 @@ function MessageRow({ msg, index }: { msg: StreamMessage; index: number }) {
           <span className="truncate">{summary}</span>
         </button>
         {toolExpanded && (
-          <pre className="mt-1 ml-[18px] p-2 bg-white/[0.02] rounded border border-white/[0.04] text-[11px] text-zinc-500 max-h-[200px] overflow-auto whitespace-pre-wrap break-all custom-scrollbar">
+          <pre className="mt-1 ml-[18px] p-2 bg-white/[0.02] rounded border border-white/[0.04] text-[12px] text-zinc-500 max-h-[200px] overflow-auto whitespace-pre-wrap break-all custom-scrollbar">
             {fullContent.length > 2000
               ? fullContent.slice(0, 2000) + "\n... (truncated)"
               : fullContent}
@@ -326,7 +326,7 @@ function MessageRow({ msg, index }: { msg: StreamMessage; index: number }) {
   }
 
   return (
-    <div className="py-1 text-[11px] text-zinc-600">
+    <div className="py-1 text-[12px] text-zinc-600">
       <span className="font-mono">[{msg.role}]</span>{" "}
       {(msg.content ?? "").slice(0, 100)}
     </div>
@@ -388,13 +388,13 @@ function SessionTerminal({ session }: { session: VibeSession }) {
               session.status === "running" && "animate-pulse",
             )}
           />
-          <span className="text-[13px] font-medium text-zinc-200 truncate">
+          <span className="text-[14px] font-medium text-zinc-200 truncate">
             {session.summary || session.complaintId}
           </span>
         </div>
         <span
           className={cn(
-            "text-[11px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0",
+            "text-[12px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0",
             session.status === "running"
               ? "text-emerald-400 border-emerald-400/20 bg-emerald-400/10"
               : session.status === "completed"
@@ -404,7 +404,7 @@ function SessionTerminal({ session }: { session: VibeSession }) {
         >
           {session.status}
         </span>
-        <span className="text-[11px] text-zinc-600 shrink-0">
+        <span className="text-[12px] text-zinc-600 shrink-0">
           {new Date(session.startedAt).toLocaleTimeString()}
         </span>
       </button>
@@ -419,7 +419,7 @@ function SessionTerminal({ session }: { session: VibeSession }) {
           >
             <div
               ref={scrollRef}
-              className="max-h-[500px] overflow-y-auto border-t border-white/[0.06] font-mono text-[12px] leading-5 custom-scrollbar"
+              className="max-h-[500px] overflow-y-auto border-t border-white/[0.06] font-mono text-[13px] leading-5 custom-scrollbar"
             >
               {visibleMessages.length === 0 ? (
                 <div className="px-4 py-6 text-zinc-600 text-center flex items-center justify-center gap-2">
@@ -437,7 +437,7 @@ function SessionTerminal({ session }: { session: VibeSession }) {
                     return (
                       <div
                         key={i}
-                        className="py-0.5 text-[11px] text-zinc-600 whitespace-pre-wrap break-all"
+                        className="py-0.5 text-[12px] text-zinc-600 whitespace-pre-wrap break-all"
                       >
                         {entry.raw}
                       </div>
@@ -446,7 +446,7 @@ function SessionTerminal({ session }: { session: VibeSession }) {
                   {session.status === "running" && (
                     <div className="flex items-center gap-1.5 pt-2 pb-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span className="text-zinc-600 text-[11px]">
+                      <span className="text-zinc-600 text-[12px]">
                         streaming...
                       </span>
                     </div>
@@ -555,7 +555,7 @@ export function ActiveSessions({ accessToken }: Props) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-8">
-        <div className="flex items-center gap-2 text-[12px]">
+        <div className="flex items-center gap-2 text-[13px]">
           <span
             className={cn(
               "w-1.5 h-1.5 rounded-full",
@@ -567,7 +567,7 @@ export function ActiveSessions({ accessToken }: Props) {
           </span>
         </div>
         {error && (
-          <span className="text-[12px] text-yellow-500/70">{error}</span>
+          <span className="text-[13px] text-yellow-500/70">{error}</span>
         )}
       </div>
 
@@ -575,10 +575,10 @@ export function ActiveSessions({ accessToken }: Props) {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4 border-b border-white/[0.08] pb-2">
             <Activity className="w-4 h-4 text-emerald-400" />
-            <h2 className="text-[13px] font-medium text-zinc-300">
+            <h2 className="text-[14px] font-medium text-zinc-300">
               Active Sessions
             </h2>
-            <span className="text-[11px] bg-emerald-400/10 text-emerald-400 px-1.5 py-0.5 rounded-sm ml-auto font-medium">
+            <span className="text-[12px] bg-emerald-400/10 text-emerald-400 px-1.5 py-0.5 rounded-sm ml-auto font-medium">
               {runningSessions.length}
             </span>
           </div>
@@ -594,10 +594,10 @@ export function ActiveSessions({ accessToken }: Props) {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4 border-b border-white/[0.08] pb-2">
             <Terminal className="w-4 h-4 text-zinc-500" />
-            <h2 className="text-[13px] font-medium text-zinc-300">
+            <h2 className="text-[14px] font-medium text-zinc-300">
               Recent Sessions
             </h2>
-            <span className="text-[11px] text-zinc-600 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">
+            <span className="text-[12px] text-zinc-600 bg-white/[0.04] px-1.5 py-0.5 rounded-sm ml-auto">
               {finishedSessions.length}
             </span>
           </div>
@@ -614,10 +614,10 @@ export function ActiveSessions({ accessToken }: Props) {
           <div className="w-12 h-12 rounded-xl border border-white/[0.08] bg-[#0A0A0A] flex items-center justify-center mb-4">
             <Terminal className="w-5 h-5 text-zinc-600" />
           </div>
-          <p className="text-[14px] font-medium text-zinc-400 mb-1">
+          <p className="text-[15px] font-medium text-zinc-400 mb-1">
             No active sessions
           </p>
-          <p className="text-[13px] text-zinc-600 max-w-[300px]">
+          <p className="text-[14px] text-zinc-600 max-w-[300px]">
             When the coding agent starts working on an issue, you&apos;ll see
             the live output here.
           </p>
