@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   Settings,
   LogOut,
-  Terminal,
   Activity,
   MessageSquare,
   AlertTriangle,
@@ -267,7 +266,7 @@ export function Dashboard({
       >
         <div className="h-14 flex items-center justify-between px-4 border-b border-white/[0.04]">
           <div className="flex items-center gap-2 text-[14px] font-medium text-white">
-            <Terminal className="w-4 h-4" />
+            <img src="/logo.png" alt="Reflex" className="w-4 h-4" />
             Workspace
           </div>
           <button

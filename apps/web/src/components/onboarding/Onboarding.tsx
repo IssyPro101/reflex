@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
-  Terminal,
   Lock,
   Globe,
   Sparkles,
@@ -130,7 +129,7 @@ export function Onboarding(props: Props) {
       {/* Header */}
       <header className="fixed top-0 inset-x-0 h-16 flex items-center justify-center border-b border-white/[0.08] bg-black/80 backdrop-blur-md z-10">
         <div className="flex items-center gap-2">
-          <Terminal className="w-4 h-4 text-white" />
+          <img src="/logo.png" alt="Reflex" className="w-4 h-4" />
           <span className="font-semibold tracking-tight text-[15px]">Reflex Setup</span>
         </div>
       </header>

@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Terminal } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Onboarding } from "@/components/onboarding/Onboarding";
 import { Landing } from "@/components/landing/Landing";
@@ -18,7 +17,7 @@ function LoadingScreen() {
         className="flex flex-col items-center gap-6"
       >
         <div className="w-12 h-12 rounded-xl border border-white/[0.08] bg-[#0A0A0A] flex items-center justify-center shadow-2xl">
-          <Terminal className="w-5 h-5 text-white" />
+          <img src="/logo.png" alt="Reflex" className="w-5 h-5" />
         </div>
         <div className="w-40 h-[3px] rounded-full bg-white/[0.04] overflow-hidden">
           <div className="h-full w-1/3 bg-white/[0.8] rounded-full animate-loading-bar" />

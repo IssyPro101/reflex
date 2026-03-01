@@ -6,7 +6,6 @@ import {
   GitPullRequest,
   BarChart3,
   Bot,
-  Terminal,
   MessageSquare,
   Code2,
 
@@ -86,9 +85,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
       <nav className="fixed top-0 inset-x-0 z-50 bg-black/70 backdrop-blur-xl border-b border-white/[0.06]">
         <div className="max-w-[1100px] mx-auto px-6 py-4 flex items-center">
           <div className="flex items-center gap-2.5 flex-1">
-            <div className="w-7 h-7 rounded-lg bg-white/[0.08] border border-white/[0.06] flex items-center justify-center">
-              <Terminal className="w-3.5 h-3.5 text-white" />
-            </div>
+            <img src="/logo.png" alt="Reflex" className="w-7 h-7" />
             <span className="font-semibold tracking-tight text-[15px]">
               Reflex
             </span>
@@ -216,7 +213,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                 <div className="w-full md:w-[200px] border-r border-white/[0.04] flex flex-col">
                   <div className="h-12 flex items-center px-4 border-b border-white/[0.04]">
                     <div className="flex items-center gap-2 text-[13px] font-medium text-zinc-300">
-                      <Terminal className="w-3.5 h-3.5" />
+                      <img src="/logo.png" alt="Reflex" className="w-3.5 h-3.5" />
                       Workspace
                     </div>
                   </div>
@@ -501,7 +498,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
               before your users notice
             </h2>
             <p className="text-zinc-500 text-[16px] mb-8 max-w-sm mx-auto">
-              Connect your Discord and GitHub. Reflex handles the rest.
+              Connect your GitHub, Discord and Telegram. Reflex handles the rest.
             </p>
             <button
               onClick={onSignIn}
@@ -518,7 +515,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
       <footer className="border-t border-white/[0.06] py-8">
         <div className="max-w-[1100px] mx-auto px-6 flex items-center justify-between">
           <div className="flex items-center gap-2 text-[13px] text-zinc-600">
-            <Terminal className="w-3 h-3" />
+            <img src="/logo.png" alt="Reflex" className="w-3 h-3" />
             <span>Reflex</span>
           </div>
           <span className="text-[12px] text-zinc-700">
