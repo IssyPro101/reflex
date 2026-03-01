@@ -145,7 +145,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
             </motion.div>
 
             <motion.h1
-              className="text-[41px] sm:text-[57px] md:text-[69px] leading-[1.08] tracking-[-0.035em] font-semibold bg-gradient-to-b from-white via-white to-zinc-500 bg-clip-text text-transparent"
+              className="text-[41px] sm:text-[57px] md:text-[69px] leading-[1.08] tracking-[-0.035em] font-semibold bg-gradient-to-b from-white via-white to-zinc-500 bg-clip-text text-transparent pb-1"
               variants={fadeUp}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
@@ -164,7 +164,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
               }}
             >
               Reflex listens to your Discord, triages bug reports with AI, and
-              opens pull requests with fixes — so you can ship faster.
+              opens pull requests with fixes, so you can ship faster.
             </motion.p>
 
             <motion.div

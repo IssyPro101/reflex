@@ -56,6 +56,10 @@ button, input {
   font-family: inherit;
 }
 
+button, [role="button"] {
+  cursor: pointer;
+}
+
 /* Subtle radial glow behind the hero section */
 .hero-glow-refined {
   position: absolute;

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
-  Settings,
+  Settings as SettingsIcon,
   LogOut,
   Activity,
   MessageSquare,
@@ -15,26 +15,17 @@ import {
   GitMerge,
   ExternalLink,
   Github,
-  CheckCircle2,
   RefreshCw,
-  Plus,
-  Trash2,
   Menu,
   X,
-  Lock,
-  Globe,
-  Save,
   MoreHorizontal,
 } from "lucide-react";
 import { DiscordIcon, TelegramIcon } from "@/components/icons/BrandIcons";
-import type {
-  AuthMeResponse,
-  ObservabilityResponse,
-  Repo,
-} from "@/lib/types";
+import type { AuthMeResponse, ObservabilityResponse } from "@/lib/types";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { ActiveSessions } from "@/components/sessions/ActiveSessions";
+import { DashboardSettings } from "@/components/settings/Settings";
 
 type Props = {
   accessToken: string;
@@ -72,11 +63,6 @@ function statusBadge(status: string) {
   return map[status] ?? "text-zinc-400 border-zinc-400/20 bg-zinc-400/10";
 }
 
-function toGitUrl(htmlUrl: string): string {
-  const trimmed = htmlUrl.replace(/\/+$/, "");
-  return trimmed.endsWith(".git") ? trimmed : `${trimmed}.git`;
-}
-
 const fadeIn = {
   initial: { opacity: 0, y: 10 },
   animate: { opacity: 1, y: 0 },
@@ -92,28 +78,15 @@ export function Dashboard({
   const [tab, setTab] = useState<Tab>("overview");
   const [overview, setOverview] = useState<ObservabilityResponse | null>(null);
   const [loadingOverview, setLoadingOverview] = useState(true);
-  const [repos, setRepos] = useState<Repo[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const [targetRepoUrl, setTargetRepoUrl] = useState(
-    authState.github.target?.repoUrl ?? "",
-  );
-  const [targetBranch, setTargetBranch] = useState(
-    authState.github.target?.baseBranch ?? "main",
-  );
-  const [discordGuildInput, setDiscordGuildInput] = useState("");
-  const [discordGuilds, setDiscordGuilds] = useState<string[]>(
-    authState.discord.guildIds ?? [],
-  );
-  const [telegramChatId, setTelegramChatId] = useState(
-    authState.telegram.chatId ?? "",
-  );
-  const [saving, setSaving] = useState(false);
   const [savedFeedback, setSavedFeedback] = useState("");
 
   const userLabel = authState.github.login
     ? `@${authState.github.login}`
     : (authState.app.email ?? "User");
+  const discordGuilds = authState.discord.guildIds ?? [];
+  const targetRepoUrl = authState.github.target?.repoUrl ?? "";
+  const telegramChatId = authState.telegram.chatId ?? "";
 
   const loadOverview = useCallback(async () => {
     setLoadingOverview(true);
@@ -126,100 +99,16 @@ export function Dashboard({
     setLoadingOverview(false);
   }, [accessToken]);
 
-  const loadRepos = useCallback(async () => {
-    if (!authState.github.connected) return;
-    try {
-      const data = await api.getRepos(accessToken);
-      setRepos(data.repos.slice(0, 12));
-    } catch {
-      /* silent */
-    }
-  }, [accessToken, authState.github.connected]);
-
   useEffect(() => {
-    loadOverview();
-    loadRepos();
-  }, [loadOverview, loadRepos]);
+    const timeoutId = window.setTimeout(() => {
+      void loadOverview();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [loadOverview]);
 
   function showFeedback(msg: string) {
     setSavedFeedback(msg);
     setTimeout(() => setSavedFeedback(""), 2500);
-  }
-
-  async function saveTarget() {
-    if (!targetRepoUrl.trim() || !targetBranch.trim()) return;
-    setSaving(true);
-    try {
-      await api.saveTarget(accessToken, targetRepoUrl, targetBranch);
-      showFeedback("Target saved");
-      onRefresh();
-    } catch {
-      showFeedback("Failed to save");
-    }
-    setSaving(false);
-  }
-
-  async function linkDiscord() {
-    if (!discordGuildInput.trim()) return;
-    setSaving(true);
-    try {
-      await api.linkDiscord(accessToken, discordGuildInput.trim());
-      setDiscordGuilds((prev) => [...prev, discordGuildInput.trim()]);
-      setDiscordGuildInput("");
-      showFeedback("Discord linked");
-      onRefresh();
-    } catch {
-      showFeedback("Failed to link");
-    }
-    setSaving(false);
-  }
-
-  async function unlinkDiscord(guildId: string) {
-    setSaving(true);
-    try {
-      await api.unlinkDiscord(accessToken, guildId);
-      setDiscordGuilds((prev) => prev.filter((g) => g !== guildId));
-      showFeedback("Discord unlinked");
-      onRefresh();
-    } catch {
-      showFeedback("Failed to unlink");
-    }
-    setSaving(false);
-  }
-
-  async function saveTelegram() {
-    if (!telegramChatId.trim()) return;
-    setSaving(true);
-    try {
-      await api.linkTelegram(accessToken, telegramChatId.trim());
-      showFeedback("Telegram linked");
-      onRefresh();
-    } catch {
-      showFeedback("Failed to link");
-    }
-    setSaving(false);
-  }
-
-  async function removeTelegram() {
-    setSaving(true);
-    try {
-      await api.unlinkTelegram(accessToken);
-      setTelegramChatId("");
-      showFeedback("Telegram unlinked");
-      onRefresh();
-    } catch {
-      showFeedback("Failed to unlink");
-    }
-    setSaving(false);
-  }
-
-  async function disconnectGithub() {
-    try {
-      await api.disconnectGitHub(accessToken);
-      onRefresh();
-    } catch {
-      /* silent */
-    }
   }
 
   const stats = overview
@@ -236,11 +125,8 @@ export function Dashboard({
   const navItems = [
     { id: "overview" as Tab, label: "Overview", icon: LayoutDashboard },
     { id: "sessions" as Tab, label: "Sessions", icon: Activity },
-    { id: "settings" as Tab, label: "Settings", icon: Settings },
+    { id: "settings" as Tab, label: "Settings", icon: SettingsIcon },
   ];
-
-  const inputClass =
-    "w-full px-3 py-2 rounded-md bg-[#0A0A0A] border border-white/[0.08] text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/[0.2] transition-colors text-[14px]";
 
   return (
     <div className="min-h-screen bg-black text-white flex font-sans selection:bg-white/20">
@@ -555,124 +441,12 @@ export function Dashboard({
                   transition={{ duration: 0.2 }}
                   className="max-w-2xl"
                 >
-                  <div className="space-y-10">
-                    {/* Settings Sections */}
-                    <section>
-                      <h3 className="text-[15px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
-                        <Github className="w-4 h-4 text-zinc-400" />
-                        GitHub Integration
-                      </h3>
-                      {authState.github.connected ? (
-                        <div className="flex items-center justify-between text-[14px] p-3 rounded-lg border border-white/[0.08] bg-[#0A0A0A]">
-                          <span className="text-zinc-300 flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-white" />
-                            Connected to @{authState.github.login}
-                          </span>
-                          <button onClick={disconnectGithub} className="text-zinc-500 hover:text-white transition-colors">Disconnect</button>
-                        </div>
-                      ) : (
-                        <p className="text-[14px] text-zinc-500">Not connected.</p>
-                      )}
-                    </section>
-
-                    <section>
-                      <h3 className="text-[15px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
-                        <GitPullRequest className="w-4 h-4 text-zinc-400" />
-                        Target Repository
-                      </h3>
-                      <div className="space-y-4">
-                        <div className="grid sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-[13px] font-medium text-zinc-500 mb-1.5">Repository URL</label>
-                            <input
-                              value={targetRepoUrl}
-                              onChange={(e) => setTargetRepoUrl(e.target.value)}
-                              placeholder="https://github.com/owner/repo.git"
-                              className={inputClass}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[13px] font-medium text-zinc-500 mb-1.5">Base Branch</label>
-                            <input
-                              value={targetBranch}
-                              onChange={(e) => setTargetBranch(e.target.value)}
-                              placeholder="main"
-                              className={inputClass}
-                            />
-                          </div>
-                        </div>
-                        <button
-                          onClick={saveTarget}
-                          disabled={saving || !targetRepoUrl || !targetBranch}
-                          className="bg-white text-black px-4 py-1.5 rounded-md text-[14px] font-medium hover:bg-zinc-200 disabled:opacity-50 transition-colors"
-                        >
-                          Save changes
-                        </button>
-                      </div>
-                    </section>
-
-                    <section>
-                      <h3 className="text-[15px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
-                        <DiscordIcon className="w-4 h-4 text-[#5865F2]" />
-                        Discord Servers
-                      </h3>
-                      <div className="space-y-3">
-                        {discordGuilds.map((id) => (
-                          <div key={id} className="flex items-center justify-between text-[14px] p-2.5 rounded-md border border-white/[0.08] bg-[#0A0A0A]">
-                            <span className="font-mono text-zinc-400">{id}</span>
-                            <button onClick={() => unlinkDiscord(id)} className="text-zinc-600 hover:text-red-400 transition-colors">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                        <div className="flex items-center gap-2">
-                          <input
-                            value={discordGuildInput}
-                            onChange={(e) => setDiscordGuildInput(e.target.value)}
-                            placeholder="Add server ID..."
-                            className={inputClass}
-                          />
-                          <button
-                            onClick={linkDiscord}
-                            disabled={saving || !discordGuildInput}
-                            className="bg-white text-black px-3 py-2 rounded-md hover:bg-zinc-200 transition-colors disabled:opacity-50 shrink-0"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </section>
-
-                    <section>
-                      <h3 className="text-[15px] font-medium mb-4 flex items-center gap-2 border-b border-white/[0.08] pb-2">
-                        <TelegramIcon className="w-4 h-4 text-[#26A5E4]" />
-                        Telegram Notifications
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <input
-                          value={telegramChatId}
-                          onChange={(e) => setTelegramChatId(e.target.value)}
-                          placeholder="Telegram Chat ID"
-                          className={inputClass}
-                        />
-                        <button
-                          onClick={saveTelegram}
-                          disabled={saving || !telegramChatId}
-                          className="bg-white text-black px-4 py-2 rounded-md text-[14px] font-medium hover:bg-zinc-200 disabled:opacity-50 transition-colors shrink-0"
-                        >
-                          Save
-                        </button>
-                        {authState.telegram.chatId && (
-                          <button
-                            onClick={removeTelegram}
-                            className="text-zinc-600 hover:text-red-400 transition-colors px-2 shrink-0"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </section>
-                  </div>
+                  <DashboardSettings
+                    accessToken={accessToken}
+                    authState={authState}
+                    onRefresh={onRefresh}
+                    onFeedback={showFeedback}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

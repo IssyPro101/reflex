@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Reflex — Automated Bug Fixing from Community Feedback",
+  title: "Reflex",
   description:
     "Listen to your Discord community, classify issues with AI, and automatically create pull requests to fix bugs.",
 };
