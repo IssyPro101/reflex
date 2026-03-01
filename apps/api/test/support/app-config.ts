@@ -10,7 +10,7 @@ export function makeAppConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     DISCORD_CLIENT_ID: undefined,
     DISCORD_GUILD_ID: undefined,
     MISTRAL_API_KEY: 'test-key',
-    MISTRAL_MODEL: 'mistral-small-latest',
+    MISTRAL_MODEL: 'ministral-14b-latest',
     TELEGRAM_BOT_TOKEN: undefined,
     SUPABASE_URL: 'https://example.supabase.co',
     SUPABASE_ANON_KEY: 'supabase-anon-key',

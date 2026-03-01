@@ -17,7 +17,7 @@ const envSchema = z.object({
   DISCORD_GUILD_ID: z.string().optional(),
 
   MISTRAL_API_KEY: z.string().min(1),
-  MISTRAL_MODEL: z.string().default('mistral-small-latest'),
+  MISTRAL_MODEL: z.string().default('ministral-14b-latest'),
 
   TELEGRAM_BOT_TOKEN: z.string().optional(),
 

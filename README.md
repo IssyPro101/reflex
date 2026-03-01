@@ -132,7 +132,7 @@ REDIS_URL=redis://localhost:6379
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/cfca
 
 MISTRAL_API_KEY=YOUR_MISTRAL_API_KEY
-MISTRAL_MODEL=mistral-small-latest
+MISTRAL_MODEL=ministral-14b-latest
 
 FRONTEND_URL=http://localhost:3001
 API_BASE_URL=http://localhost:3000
@@ -216,7 +216,7 @@ Notes:
 | `DISCORD_CLIENT_ID` | No | empty | Reserved for Discord app config |
 | `DISCORD_GUILD_ID` | No | empty | Reserved for guild scoping |
 | `MISTRAL_API_KEY` | Yes | - | Mistral API auth |
-| `MISTRAL_MODEL` | No | `mistral-small-latest` | Triage model |
+| `MISTRAL_MODEL` | No | `ministral-14b-latest` | Triage model |
 | `TELEGRAM_BOT_TOKEN` | No | empty | Enables Telegram notifications |
 | `SUPABASE_URL` | Required for auth | empty | Supabase project URL |
 | `SUPABASE_ANON_KEY` | Required for auth | empty | Supabase anon key |
