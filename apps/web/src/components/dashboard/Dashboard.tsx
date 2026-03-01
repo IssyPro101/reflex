@@ -88,23 +88,36 @@ export function Dashboard({
   const targetRepoUrl = authState.github.target?.repoUrl ?? "";
   const telegramChatId = authState.telegram.chatId ?? "";
 
-  const loadOverview = useCallback(async () => {
-    setLoadingOverview(true);
+  const loadOverview = useCallback(async (silent = false) => {
+    if (!silent) setLoadingOverview(true);
     try {
       const data = await api.getOverview(accessToken);
       setOverview(data);
     } catch {
       /* silent */
     }
-    setLoadingOverview(false);
+    if (!silent) setLoadingOverview(false);
   }, [accessToken]);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadOverview();
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
+    void loadOverview();
   }, [loadOverview]);
+
+  useEffect(() => {
+    if (tab !== "overview") return;
+
+    const id = setInterval(() => void loadOverview(true), 15_000);
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void loadOverview(true);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [tab, loadOverview]);
 
   function showFeedback(msg: string) {
     setSavedFeedback(msg);
@@ -234,18 +247,27 @@ export function Dashboard({
               )}
             </AnimatePresence>
             {tab === "overview" && (
-              <button
-                onClick={loadOverview}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[14px] text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer border border-transparent hover:border-white/[0.1]"
-              >
-                <RefreshCw
-                  className={cn(
-                    "w-3.5 h-3.5",
-                    loadingOverview && "animate-spin",
-                  )}
-                />
-                <span className="hidden sm:inline">Refresh</span>
-              </button>
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1.5 text-[12px] text-zinc-500">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
+                  Live
+                </span>
+                <button
+                  onClick={() => void loadOverview()}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[14px] text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer border border-transparent hover:border-white/[0.1]"
+                >
+                  <RefreshCw
+                    className={cn(
+                      "w-3.5 h-3.5",
+                      loadingOverview && "animate-spin",
+                    )}
+                  />
+                  <span className="hidden sm:inline">Refresh</span>
+                </button>
+              </div>
             )}
           </div>
         </header>
