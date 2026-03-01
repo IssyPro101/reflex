@@ -519,7 +519,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
             <span>Reflex</span>
           </div>
           <span className="text-[13px] text-zinc-700">
-            Built for the Mistral AI Hackathon
+            Built for the Mistral AI Worldwide Hackathon 2026
           </span>
         </div>
       </footer>
