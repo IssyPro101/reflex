@@ -1,0 +1,20 @@
+enabled_tools = ["bash", "read_file", "write_file", "search_replace", "grep", "todo"]
+
+[tools.bash]
+permission = "always"
+denylist = ["rm -rf /", "rm -rf ~", "sudo *", "passwd *", "mkfs *", "dd if=*"]
+
+[tools.write_file]
+permission = "always"
+
+[tools.search_replace]
+permission = "always"
+
+[tools.read_file]
+permission = "always"
+
+[tools.grep]
+permission = "always"
+
+[tools.todo]
+permission = "always"

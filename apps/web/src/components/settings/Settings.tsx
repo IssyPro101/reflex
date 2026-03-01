@@ -226,7 +226,7 @@ export function DashboardSettings({
             <button
               onClick={linkDiscord}
               disabled={saving || !discordGuildInput}
-              className="bg-white text-black px-3 py-2 rounded-md hover:bg-zinc-200 transition-colors disabled:opacity-50 shrink-0"
+              className="bg-yellow-500 text-black px-3 py-2 rounded-md hover:bg-yellow-400 transition-colors disabled:opacity-50 shrink-0"
             >
               <Plus className="w-4 h-4" />
             </button>
