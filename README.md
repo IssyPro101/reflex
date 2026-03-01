@@ -423,5 +423,3 @@ Recommended production split:
 - Frontend currently depends on Supabase browser auth and API bearer pass-through.
 
 ---
-
-For product intent and demo framing, see [`prd.md`](./prd.md).
