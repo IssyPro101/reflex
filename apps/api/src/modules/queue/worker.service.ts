@@ -34,7 +34,7 @@ export class WorkerService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit(): Promise<void> {
     if (!this.config.QUEUE_WORKERS_ENABLED) {
-      this.logger.log('Queue workers disabled by configuration');
+      this.logger.log('Queue workers disabled by config');
       return;
     }
 
