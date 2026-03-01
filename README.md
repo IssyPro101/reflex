@@ -143,7 +143,7 @@ APP_AUTH_SECRET=change-this-in-real-env
 
 GITHUB_OAUTH_CLIENT_ID=YOUR_GITHUB_OAUTH_CLIENT_ID
 GITHUB_OAUTH_CLIENT_SECRET=YOUR_GITHUB_OAUTH_CLIENT_SECRET
-GITHUB_OAUTH_SCOPE=repo read:user
+GITHUB_OAUTH_SCOPE="repo admin:repo_hook read:user"
 GITHUB_WEBHOOK_SECRET=OPTIONAL_SHARED_SECRET
 
 DISCORD_BOT_TOKEN=OPTIONAL_DISCORD_BOT_TOKEN
@@ -226,7 +226,7 @@ Notes:
 | `API_BASE_URL` | No | `http://localhost:3000` | Used when auto-installing webhooks |
 | `GITHUB_OAUTH_CLIENT_ID` | Required for GitHub connect | empty | GitHub OAuth app client ID |
 | `GITHUB_OAUTH_CLIENT_SECRET` | Required for GitHub connect | empty | GitHub OAuth app secret |
-| `GITHUB_OAUTH_SCOPE` | No | `repo read:user` | OAuth requested scopes |
+| `GITHUB_OAUTH_SCOPE` | No | `repo admin:repo_hook read:user` | OAuth requested scopes |
 | `GITHUB_WEBHOOK_SECRET` | No | empty | Optional signature verification secret |
 | `VIBE_BIN` | No | `vibe` | Vibe executable path/name |
 | `VIBE_AGENT` | No | `pr-agent` | Agent profile name passed to Vibe |
