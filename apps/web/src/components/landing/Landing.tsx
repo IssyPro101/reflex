@@ -9,7 +9,7 @@ import {
   Terminal,
   MessageSquare,
   Code2,
-  Zap,
+
   LayoutDashboard,
   Activity,
   Settings,
@@ -63,7 +63,7 @@ const steps = [
     number: "01",
     icon: MessageSquare,
     title: "Listen",
-    description: "CFCA monitors your Discord for bug reports and feedback.",
+    description: "Reflex monitors your Discord for bug reports and feedback.",
   },
   {
     number: "02",
@@ -90,7 +90,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
               <Terminal className="w-3.5 h-3.5 text-white" />
             </div>
             <span className="font-semibold tracking-tight text-[15px]">
-              CFCA
+              Reflex
             </span>
           </div>
 
@@ -142,7 +142,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
               <span className="inline-flex items-center gap-2 text-[12px] font-medium tracking-wide uppercase text-zinc-500 border border-white/[0.08] rounded-full px-3.5 py-1.5 mb-8 bg-white/[0.02]">
-                <Zap className="w-3 h-3 text-amber-400" />
+                <img src="/mistral-logo.png" alt="Mistral AI" className="w-4 h-4" />
                 Powered by Mistral AI
               </span>
             </motion.div>
@@ -166,7 +166,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                 ease: [0.16, 1, 0.3, 1],
               }}
             >
-              CFCA listens to your Discord, triages bug reports with AI, and
+              Reflex listens to your Discord, triages bug reports with AI, and
               opens pull requests with fixes — so you can ship faster.
             </motion.p>
 
@@ -207,7 +207,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
                 <div className="w-2.5 h-2.5 rounded-full bg-white/[0.08]" />
                 <div className="w-2.5 h-2.5 rounded-full bg-white/[0.08]" />
                 <span className="text-[11px] text-zinc-600 ml-3 font-mono">
-                  cfca — dashboard
+                  reflex — dashboard
                 </span>
               </div>
 
@@ -501,7 +501,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
               before your users notice
             </h2>
             <p className="text-zinc-500 text-[16px] mb-8 max-w-sm mx-auto">
-              Connect your Discord and GitHub. CFCA handles the rest.
+              Connect your Discord and GitHub. Reflex handles the rest.
             </p>
             <button
               onClick={onSignIn}
@@ -519,7 +519,7 @@ export function Landing({ onSignIn }: { onSignIn: () => void }) {
         <div className="max-w-[1100px] mx-auto px-6 flex items-center justify-between">
           <div className="flex items-center gap-2 text-[13px] text-zinc-600">
             <Terminal className="w-3 h-3" />
-            <span>CFCA</span>
+            <span>Reflex</span>
           </div>
           <span className="text-[12px] text-zinc-700">
             Built for the Mistral AI Hackathon

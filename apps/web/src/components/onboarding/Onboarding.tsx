@@ -131,32 +131,39 @@ export function Onboarding(props: Props) {
       <header className="fixed top-0 inset-x-0 h-16 flex items-center justify-center border-b border-white/[0.08] bg-black/80 backdrop-blur-md z-10">
         <div className="flex items-center gap-2">
           <Terminal className="w-4 h-4 text-white" />
-          <span className="font-semibold tracking-tight text-[15px]">CFCA Setup</span>
+          <span className="font-semibold tracking-tight text-[15px]">Reflex Setup</span>
         </div>
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-24 w-full max-w-xl mx-auto">
         <div className="flex items-center gap-2 mb-12">
-          {stepsMeta.map((step, i) => (
-            <div key={step.id} className="flex items-center gap-2">
-              <div
-                className={`flex items-center justify-center w-6 h-6 rounded-full text-[12px] font-medium transition-colors ${
-                  i === currentStep
-                    ? "bg-white text-black"
-                    : i < currentStep
-                      ? "bg-zinc-800 text-zinc-300"
-                      : "border border-white/[0.1] text-zinc-600"
-                }`}
-              >
-                {i < currentStep ? <CheckCircle2 className="w-3.5 h-3.5" /> : i + 1}
-              </div>
-              {i < stepsMeta.length - 1 && (
+          {stepsMeta.map((step, i) => {
+            const Icon = step.icon;
+            return (
+              <div key={step.id} className="flex items-center gap-2">
                 <div
-                  className={`w-8 h-[1px] ${i < currentStep ? "bg-zinc-800" : "bg-white/[0.08]"}`}
-                />
-              )}
-            </div>
-          ))}
+                  className={`flex items-center justify-center w-8 h-8 rounded-full transition-colors ${
+                    i === currentStep
+                      ? "bg-white text-black"
+                      : i < currentStep
+                        ? "bg-zinc-800 text-zinc-300"
+                        : "border border-white/[0.1] text-zinc-600"
+                  }`}
+                >
+                  {i < currentStep ? (
+                    <CheckCircle2 className="w-4 h-4" />
+                  ) : (
+                    <Icon className="w-4 h-4" />
+                  )}
+                </div>
+                {i < stepsMeta.length - 1 && (
+                  <div
+                    className={`w-8 h-[1px] ${i < currentStep ? "bg-zinc-800" : "bg-white/[0.08]"}`}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Step Content */}
@@ -174,11 +181,14 @@ export function Onboarding(props: Props) {
                 className="w-full"
               >
                 <div className="text-center mb-8">
+                  <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center">
+                    <Github className="w-7 h-7 text-white" />
+                  </div>
                   <h2 className="text-[24px] font-medium tracking-tight mb-2">
                     Connect GitHub
                   </h2>
                   <p className="text-[15px] text-zinc-500">
-                    Authorize CFCA to open pull requests automatically.
+                    Authorize Reflex to open pull requests automatically.
                   </p>
                 </div>
 
@@ -222,6 +232,9 @@ export function Onboarding(props: Props) {
                 className="w-full"
               >
                 <div className="text-center mb-8">
+                  <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center">
+                    <GitBranch className="w-7 h-7 text-white" />
+                  </div>
                   <h2 className="text-[24px] font-medium tracking-tight mb-2">
                     Target Repository
                   </h2>
@@ -314,11 +327,14 @@ export function Onboarding(props: Props) {
                 className="w-full"
               >
                 <div className="text-center mb-8">
+                  <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-[#5865F2]/10 border border-[#5865F2]/20 flex items-center justify-center">
+                    <DiscordIcon className="w-7 h-7 text-[#5865F2]" />
+                  </div>
                   <h2 className="text-[24px] font-medium tracking-tight mb-2">
                     Link Discord
                   </h2>
                   <p className="text-[15px] text-zinc-500">
-                    Optional: add your server ID so CFCA can monitor community feedback.
+                    Optional: add your server ID so Reflex can monitor community feedback.
                   </p>
                 </div>
 
@@ -388,6 +404,9 @@ export function Onboarding(props: Props) {
                 className="w-full"
               >
                 <div className="text-center mb-8">
+                  <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-[#26A5E4]/10 border border-[#26A5E4]/20 flex items-center justify-center">
+                    <TelegramIcon className="w-7 h-7 text-[#26A5E4]" />
+                  </div>
                   <h2 className="text-[24px] font-medium tracking-tight mb-2">
                     Link Telegram
                   </h2>
@@ -462,6 +481,9 @@ export function Onboarding(props: Props) {
                 className="w-full"
               >
                 <div className="text-center mb-8">
+                  <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center">
+                    <CheckCircle2 className="w-7 h-7 text-white" />
+                  </div>
                   <h2 className="text-[24px] font-medium tracking-tight mb-2">
                     You're all set
                   </h2>
@@ -484,13 +506,19 @@ export function Onboarding(props: Props) {
                   </div>
                   <div className="grid gap-2 text-[13px]">
                     <div className="flex items-center justify-between rounded-lg border border-white/[0.06] px-3 py-2 bg-black/40">
-                      <span className="text-zinc-500">Discord</span>
+                      <span className="flex items-center gap-2 text-zinc-500">
+                        <DiscordIcon className="w-4 h-4 text-[#5865F2]" />
+                        Discord
+                      </span>
                       <span className={discordLinked ? "text-zinc-200" : "text-zinc-500"}>
                         {discordLinked ? "Linked" : "Skipped"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between rounded-lg border border-white/[0.06] px-3 py-2 bg-black/40">
-                      <span className="text-zinc-500">Telegram</span>
+                      <span className="flex items-center gap-2 text-zinc-500">
+                        <TelegramIcon className="w-4 h-4 text-[#26A5E4]" />
+                        Telegram
+                      </span>
                       <span className={telegramLinked ? "text-zinc-200" : "text-zinc-500"}>
                         {telegramLinked ? "Linked" : "Skipped"}
                       </span>

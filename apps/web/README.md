@@ -1,6 +1,6 @@
-# CFCA Web (Next.js)
+# Reflex Web (Next.js)
 
-Observability frontend for CFCA.
+Observability frontend for Reflex.
 
 ## Features
 

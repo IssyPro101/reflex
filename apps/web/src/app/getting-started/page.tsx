@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Terminal } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Onboarding } from "@/components/onboarding/Onboarding";
 import { Landing } from "@/components/landing/Landing";
-import { Dashboard } from "@/components/dashboard/Dashboard";
 
 function LoadingScreen() {
   return (
@@ -28,21 +28,23 @@ function LoadingScreen() {
   );
 }
 
-export default function Home() {
+export default function GettingStartedPage() {
   const router = useRouter();
   const {
     status,
-    accessToken,
     authState,
+    repos,
     needsOnboarding,
     signInWithGoogle,
-    signOut,
-    refresh,
+    connectGithub,
+    saveTarget,
+    linkDiscord,
+    linkTelegram,
   } = useAuth();
 
   useEffect(() => {
-    if (status === "authenticated" && needsOnboarding) {
-      router.replace("/getting-started");
+    if (status === "authenticated" && !needsOnboarding) {
+      router.replace("/");
     }
   }, [status, needsOnboarding, router]);
 
@@ -50,20 +52,31 @@ export default function Home() {
     return <LoadingScreen />;
   }
 
-  if (status === "unauthenticated" || !authState?.app.authenticated) {
+  if (status === "unauthenticated") {
     return <Landing onSignIn={signInWithGoogle} />;
   }
 
-  if (needsOnboarding) {
+  if (!authState?.app.authenticated) {
+    return <Landing onSignIn={signInWithGoogle} />;
+  }
+
+  if (!needsOnboarding) {
     return <LoadingScreen />;
   }
 
   return (
-    <Dashboard
-      accessToken={accessToken!}
-      authState={authState}
-      onSignOut={signOut}
-      onRefresh={refresh}
+    <Onboarding
+      githubConnected={authState.github.connected}
+      githubLogin={authState.github.login}
+      repos={repos}
+      onConnectGithub={connectGithub}
+      onSaveTarget={saveTarget}
+      onLinkDiscord={linkDiscord}
+      onLinkTelegram={linkTelegram}
+      onComplete={() => router.push("/")}
+      hasTarget={!!authState.github.target}
+      hasDiscord={authState.discord.guildIds.length > 0}
+      hasTelegram={!!authState.telegram.chatId}
     />
   );
 }
