@@ -1,0 +1,23 @@
+active_model = "devstral-2"
+
+instructions = """
+You are an automated bug-fix agent. Create minimal, safe fixes.
+Never modify .env, secrets, config credentials, or CI/CD workflows.
+Always create a branch, commit, push, and open a PR.
+"""
+
+[tools.bash]
+permission = "always"
+denylist = ["rm -rf /", "rm -rf ~", "sudo *", "passwd *", "mkfs *", "dd if=*"]
+
+[tools.write_file]
+permission = "always"
+
+[tools.search_replace]
+permission = "always"
+
+[tools.read_file]
+permission = "always"
+
+[tools.grep]
+permission = "always"
